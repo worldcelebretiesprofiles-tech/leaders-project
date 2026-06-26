@@ -884,8 +884,11 @@ function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
     try {
       const data = await loginAdmin(password);
       if (data.token) {
-        onLogin(data.token);
+        localStorage.setItem("admin_token", data.token);
         toast.success("Welcome back, Administrator!");
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       } else {
         toast.error("Invalid response from authentication server");
       }
