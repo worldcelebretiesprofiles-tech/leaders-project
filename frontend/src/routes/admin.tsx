@@ -66,10 +66,12 @@ export const Route = createFileRoute("/admin")({
   validateSearch: (search) => adminSearchSchema.parse(search),
   loader: async () => {
     try {
-      const [profiles, categories] = await Promise.all([
+      const results = await Promise.allSettled([
         getProfiles(),
         getCategories(),
       ]);
+      const profiles = results[0].status === 'fulfilled' ? results[0].value : [];
+      const categories = results[1].status === 'fulfilled' ? results[1].value : [];
       return { profiles, categories };
     } catch (err) {
       console.error("Failed to load admin data:", err);
@@ -884,11 +886,8 @@ function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
     try {
       const data = await loginAdmin(password);
       if (data.token) {
-        localStorage.setItem("admin_token", data.token);
+        onLogin(data.token);
         toast.success("Welcome back, Administrator!");
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
       } else {
         toast.error("Invalid response from authentication server");
       }
@@ -2591,21 +2590,34 @@ function AdminDashboard() {
     }
   }, [loaderData.categories]);
 
+  const [isInitializing, setIsInitializing] = useState(false);
+
   const loadData = async () => {
     try {
-      const [p, c] = await Promise.all([
+      setIsInitializing(true);
+      const results = await Promise.allSettled([
         getProfiles(),
         getCategories(),
       ]);
+      
+      const p = results[0].status === 'fulfilled' ? results[0].value : [];
+      const c = results[1].status === 'fulfilled' ? results[1].value : [];
+      
       setProfiles(p);
       setCategoriesList(c);
-    } catch (err: any) {
-      console.error("Failed to load admin data:", err);
-      if (err.message?.includes("Authentication failed") || err.message?.includes("Unauthorized") || err.message?.includes("401")) {
+      
+      const rejected = results.filter(r => r.status === 'rejected') as PromiseRejectedResult[];
+      const hasAuthError = rejected.some(r => 
+        r.reason?.message?.includes("Authentication failed") || 
+        r.reason?.message?.includes("Unauthorized") || 
+        r.reason?.message?.includes("401")
+      );
+
+      if (hasAuthError) {
         handleLogout();
-      } else {
-        toast.error("Failed to load dashboard data. Please verify your login session.");
       }
+    } finally {
+      setIsInitializing(false);
     }
   };
 
@@ -2682,6 +2694,15 @@ function AdminDashboard() {
       setToken(newToken);
       localStorage.setItem("admin_token", newToken);
     }} />;
+  }
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-midnight flex flex-col items-center justify-center">
+        <Loader2 className="size-10 text-emerald-500 animate-spin mb-4" />
+        <p className="text-white/60 font-medium text-sm animate-pulse">Initializing Dashboard Workspace...</p>
+      </div>
+    );
   }
 
   // Defensive utility to parse and guarantee the complete schema structure of the profile data

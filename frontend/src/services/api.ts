@@ -46,7 +46,10 @@ export async function getProfiles(filters?: { category_id?: number; subcategory_
   const res = await fetch(url, {
     headers: getHeaders(),
   });
-  if (!res.ok) throw new Error("Failed to fetch profiles from API");
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) throw new Error("401 Unauthorized");
+    throw new Error("Failed to fetch profiles from API");
+  }
   return res.json();
 }
 
@@ -109,7 +112,10 @@ export async function getCategories() {
   const res = await fetch(`${getBaseUrl()}/api/v1/categories`, {
     headers: getHeaders(),
   });
-  if (!res.ok) throw new Error("Failed to fetch categories from API");
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) throw new Error("401 Unauthorized");
+    throw new Error("Failed to fetch categories from API");
+  }
   return res.json();
 }
 
