@@ -6,7 +6,7 @@ const getBaseUrl = () => {
 const getHeaders = (extraHeaders: Record<string, string> = {}) => {
   const headers: Record<string, string> = { ...extraHeaders };
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("admin_token");
+    const token = sessionStorage.getItem("admin_token");
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }

@@ -135,7 +135,7 @@ function ProfessionalExpertise() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const adminToken = localStorage.getItem("admin_token");
+      const adminToken = sessionStorage.getItem("admin_token");
       console.log("useEffect - admin_token exists:", !!adminToken);
       setIsAdmin(!!adminToken);
       setOrigin(window.location.origin);

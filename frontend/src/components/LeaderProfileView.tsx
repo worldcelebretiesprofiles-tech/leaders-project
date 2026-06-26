@@ -162,7 +162,7 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
   useEffect(() => {
     if (typeof window !== "undefined") {
       setProfileUrl(`${window.location.origin}/leader/${leader.slug}`);
-      setIsAdmin(!!localStorage.getItem("admin_token"));
+      setIsAdmin(!!sessionStorage.getItem("admin_token"));
     }
   }, [leader.slug]);
 

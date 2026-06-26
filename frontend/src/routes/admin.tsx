@@ -2606,7 +2606,7 @@ function AdminDashboard() {
 
   const [token, setToken] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("admin_token");
+      return sessionStorage.getItem("admin_token");
     }
     return null;
   });
@@ -2663,7 +2663,7 @@ function AdminDashboard() {
 
   const handleLogout = () => {
     setToken(null);
-    localStorage.removeItem("admin_token");
+    sessionStorage.removeItem("admin_token");
     setProfiles([]);
     setCategoriesList([]);
     toast.info("Logged out successfully");
@@ -2764,7 +2764,7 @@ function AdminDashboard() {
   if (!token) {
     return <AdminLogin onLogin={(newToken) => {
       setToken(newToken);
-      localStorage.setItem("admin_token", newToken);
+      sessionStorage.setItem("admin_token", newToken);
     }} />;
   }
 
