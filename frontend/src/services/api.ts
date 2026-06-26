@@ -1,5 +1,6 @@
 const getBaseUrl = () => {
-  return (import.meta.env.VITE_API_URL as string) || "";
+  const url = (import.meta.env.VITE_API_URL as string) || "";
+  return url.replace(/\/+$/, "");
 };
 
 const getHeaders = (extraHeaders: Record<string, string> = {}) => {

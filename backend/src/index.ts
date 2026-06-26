@@ -27,16 +27,28 @@ if (process.env.SENTRY_DSN) {
 app.use(securityHeaders);
 
 // 2. Configure Origin-Locked CORS policies
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
-  : ["http://localhost:5173", "http://localhost:3000", "http://localhost:4173"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://celebreties-profile.vercel.app"
+];
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
+if (process.env.ALLOWED_ORIGINS) {
+  allowedOrigins.push(...process.env.ALLOWED_ORIGINS.split(","));
+}
 
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (e.g. Server-to-server or Curl)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes("*")) {
+      
+      const cleanOrigin = origin.trim().replace(/\/$/, "");
+      const isAllowed = allowedOrigins.some(allowed => cleanOrigin === allowed.trim().replace(/\/$/, ""));
+      
+      if (isAllowed || allowedOrigins.includes("*")) {
         callback(null, true);
       } else {
         console.warn(`CORS blocked request from origin: ${origin}`);
@@ -44,6 +56,10 @@ app.use(
       }
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
   })
 );
 
