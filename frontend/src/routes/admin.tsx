@@ -2555,6 +2555,45 @@ function ProfessionalExpertiseEditor({
   );
 }
 
+// Defensive utility to parse and guarantee the complete schema structure of the profile data
+const normalizeProfile = (profile: any) => {
+  if (!profile) return null;
+  const copy = JSON.parse(JSON.stringify(profile));
+
+  // Parse data if it is returned as a JSON string from PostgreSQL JSONB
+  if (typeof copy.data === "string") {
+    try {
+      copy.data = JSON.parse(copy.data);
+    } catch (e) {
+      console.error("Failed to parse profile data JSON string:", e);
+    }
+  }
+  if (!copy.data) copy.data = {};
+
+  // Normalize category relationships
+  copy.category_id = copy.category_id !== undefined ? copy.category_id : null;
+  copy.subcategory_id = copy.subcategory_id !== undefined ? copy.subcategory_id : null;
+
+  // Guarantee that every array/object field exists to prevent rendering exceptions in the sub-editors
+  copy.data.roles = copy.data.roles || [];
+  copy.data.stats = copy.data.stats || [];
+  copy.data.bio = copy.data.bio || [];
+  copy.data.biography = copy.data.biography || { earlyLife: "", career: "" };
+  copy.data.timeline = copy.data.timeline || [];
+  copy.data.orgFocus = copy.data.orgFocus || [];
+  copy.data.initiatives = copy.data.initiatives || [];
+  copy.data.awards = copy.data.awards || [];
+  copy.data.recent = copy.data.recent || [];
+  copy.data.inspirations = copy.data.inspirations || [];
+  copy.data.connect = copy.data.connect || { instagram: "", website: "", council: "" };
+  copy.data.certificates = copy.data.certificates || [];
+  copy.data.myInitiatives = copy.data.myInitiatives || [];
+  copy.data.newsArticles = copy.data.newsArticles || [];
+  copy.data.recentActivities = copy.data.recentActivities || [];
+
+  return copy;
+};
+
 function AdminDashboard() {
   const loaderData = Route.useLoaderData();
   const router = useRouter();
@@ -2689,61 +2728,6 @@ function AdminDashboard() {
     }
   }, []);
 
-  if (!token) {
-    return <AdminLogin onLogin={(newToken) => {
-      setToken(newToken);
-      localStorage.setItem("admin_token", newToken);
-    }} />;
-  }
-
-  if (isInitializing) {
-    return (
-      <div className="min-h-screen bg-midnight flex flex-col items-center justify-center">
-        <Loader2 className="size-10 text-emerald-500 animate-spin mb-4" />
-        <p className="text-white/60 font-medium text-sm animate-pulse">Initializing Dashboard Workspace...</p>
-      </div>
-    );
-  }
-
-  // Defensive utility to parse and guarantee the complete schema structure of the profile data
-  const normalizeProfile = (profile: any) => {
-    if (!profile) return null;
-    const copy = JSON.parse(JSON.stringify(profile));
-
-    // Parse data if it is returned as a JSON string from PostgreSQL JSONB
-    if (typeof copy.data === "string") {
-      try {
-        copy.data = JSON.parse(copy.data);
-      } catch (e) {
-        console.error("Failed to parse profile data JSON string:", e);
-      }
-    }
-    if (!copy.data) copy.data = {};
-
-    // Normalize category relationships
-    copy.category_id = copy.category_id !== undefined ? copy.category_id : null;
-    copy.subcategory_id = copy.subcategory_id !== undefined ? copy.subcategory_id : null;
-
-    // Guarantee that every array/object field exists to prevent rendering exceptions in the sub-editors
-    copy.data.roles = copy.data.roles || [];
-    copy.data.stats = copy.data.stats || [];
-    copy.data.bio = copy.data.bio || [];
-    copy.data.biography = copy.data.biography || { earlyLife: "", career: "" };
-    copy.data.timeline = copy.data.timeline || [];
-    copy.data.orgFocus = copy.data.orgFocus || [];
-    copy.data.initiatives = copy.data.initiatives || [];
-    copy.data.awards = copy.data.awards || [];
-    copy.data.recent = copy.data.recent || [];
-    copy.data.inspirations = copy.data.inspirations || [];
-    copy.data.connect = copy.data.connect || { instagram: "", website: "", council: "" };
-    copy.data.certificates = copy.data.certificates || [];
-    copy.data.myInitiatives = copy.data.myInitiatives || [];
-    copy.data.newsArticles = copy.data.newsArticles || [];
-    copy.data.recentActivities = copy.data.recentActivities || [];
-
-    return copy;
-  };
-
   // Synchronize URL search parameters with the draft profile state
   useEffect(() => {
     if (mode === "edit" || mode === "expertise-edit") {
@@ -2775,6 +2759,22 @@ function AdminDashboard() {
       }
     }
   }, [mode, profileId, profiles]);
+
+  if (!token) {
+    return <AdminLogin onLogin={(newToken) => {
+      setToken(newToken);
+      localStorage.setItem("admin_token", newToken);
+    }} />;
+  }
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-midnight flex flex-col items-center justify-center">
+        <Loader2 className="size-10 text-emerald-500 animate-spin mb-4" />
+        <p className="text-white/60 font-medium text-sm animate-pulse">Initializing Dashboard Workspace...</p>
+      </div>
+    );
+  }
 
   // Switch to edit mode with a fully normalized copy of the profile data
   const handleEdit = (profile: any) => {
