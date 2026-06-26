@@ -1,0 +1,518 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@source "../src";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Poppins", "Inter", sans-serif;
+
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-2xl: 36px;
+  --radius-3xl: 44px;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-veil: var(--veil);
+  --color-sky: var(--sky);
+  --color-sapphire: var(--sapphire);
+  --color-midnight: var(--midnight);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+}
+
+:root {
+  /* STRICT BRAND PALETTE: DIPLOMATIC LIGHT SYSTEM */
+  --veil: #081c3f;        /* Prestigious Deep Navy Text */
+  --sky: #0070c0;         /* Bright UN Peacekeeping Blue */
+  --sapphire: #0d2c6c;    /* Deep Royal Navy */
+  --midnight: #f5f8fc;    /* Clean Silver-Grey/Off-White Background */
+
+  --background: var(--midnight);
+  --foreground: var(--veil);
+
+  --card: rgba(255, 255, 255, 0.85);  /* White frosted glass card */
+  --card-foreground: var(--veil);
+
+  --border: rgba(13, 44, 108, 0.1);   /* Highly polished subtle navy borders */
+  --ring: var(--sky);
+
+  --primary: var(--sapphire);
+  --primary-foreground: #ffffff;
+
+  --secondary: #e6f0fa;
+  --secondary-foreground: var(--veil);
+
+  --muted: #edf4fa;
+  --muted-foreground: #5a738e;
+
+  --accent: #f2e6c9;      /* Soft Laurel Gold Highlight */
+  --accent-foreground: #a67c1e; /* Accent Gold Text */
+
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.984 0 0);
+
+  --input: rgba(255, 255, 255, 0.8);
+  --ring: var(--sky);
+
+  --gold: #b38f36;        /* Official Laurel Gold Accent */
+  --gold-light: #f7e7c4;  /* Soft Warm Gold Accent */
+
+  /* Premium tokens */
+  --gradient-primary: linear-gradient(135deg, var(--sapphire) 0%, var(--sky) 100%);
+  --gradient-gold: linear-gradient(135deg, #d4af37 0%, #b38f36 50%, #8c6b23 100%);
+  --gradient-hero:
+    radial-gradient(1200px 600px at 80% -10%, rgba(0, 112, 192, 0.06), transparent 60%),
+    radial-gradient(900px 500px at 0% 30%, rgba(179, 143, 54, 0.04), transparent 60%),
+    radial-gradient(800px 800px at 50% 110%, var(--midnight), transparent 70%),
+    linear-gradient(180deg, #ffffff 0%, var(--midnight) 100%);
+  --gradient-halo: conic-gradient(
+    from 180deg at 50% 50%,
+    var(--sky),
+    var(--sapphire),
+    var(--midnight),
+    var(--sky)
+  );
+
+  --shadow-glow: 0 20px 60px -15px rgba(13, 44, 108, 0.12), 0 8px 24px -8px rgba(13, 44, 108, 0.05);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 12px 36px -16px rgba(13, 44, 108, 0.08);
+
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(13, 44, 108, 0.08);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+  body {
+    overflow: visible;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--midnight);
+    color: var(--veil);
+    background-image:
+      radial-gradient(1200px 800px at 80% -10%, rgba(0, 112, 192, 0.08), transparent 60%),
+      radial-gradient(1000px 800px at 0% 30%, rgba(179, 143, 54, 0.05), transparent 60%),
+      linear-gradient(180deg, #ffffff 0%, var(--midnight) 100%);
+    background-attachment: fixed;
+    font-family: "Inter", sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
+@layer components {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-card);
+  }
+
+  .glass-strong {
+    background: var(--card);
+    backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid var(--border);
+    box-shadow:
+      0 30px 60px -15px rgba(13, 44, 108, 0.08),
+      0 0 40px -10px rgba(13, 44, 108, 0.03);
+  }
+
+  .btn-premium {
+    background: linear-gradient(135deg, var(--sapphire) 0%, var(--sky) 100%);
+    color: white;
+    box-shadow: 0 10px 25px -5px rgba(0, 112, 192, 0.3);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 15px 35px -5px rgba(0, 112, 192, 0.45),
+      0 0 20px rgba(0, 112, 192, 0.15);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(0, 112, 192, 0.06);
+    border: 1px solid rgba(0, 112, 192, 0.15);
+    color: var(--veil);
+    font-weight: 500;
+    font-size: 0.8rem;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 14px -8px rgba(13, 44, 108, 0.1);
+  }
+
+  .role-chip-gold-shimmer {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(252, 235, 182, 0.3) 0%, rgba(226, 190, 95, 0.3) 100%);
+    border: 1px solid rgba(201, 165, 61, 0.4);
+    color: #0d2c6c; /* Sapphire blue text */
+    font-weight: 700;
+    font-size: 0.8rem;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 14px -8px rgba(13, 44, 108, 0.15);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .role-chip-gold-shimmer::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0) 30%,
+      rgba(212, 175, 55, 0.5) 50%,
+      rgba(255, 255, 255, 0) 70%,
+      transparent 100%
+    );
+    animation: gold-shimmer-move 4s infinite linear;
+    pointer-events: none;
+  }
+
+
+
+  .text-gradient {
+    background: linear-gradient(135deg, var(--veil) 0%, var(--sky) 60%, var(--sapphire) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .text-gold {
+    background: var(--gradient-gold);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  }
+
+  .shimmer-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer-card::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent 20%,
+      rgba(212, 175, 55, 0.1) 40%,
+      rgba(212, 175, 55, 0.2) 50%,
+      rgba(212, 175, 55, 0.1) 60%,
+      transparent 80%
+    );
+    transform: rotate(30deg);
+    animation: shimmer 6s infinite;
+    pointer-events: none;
+  }
+
+  .blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(80px);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .ring-halo {
+    background: var(--gradient-halo);
+    animation: spin-slow 18s linear infinite;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(13, 44, 108, 0.15);
+    border-radius: 99px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(13, 44, 108, 0.3);
+  }
+
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(13, 44, 108, 0.15) transparent;
+  }
+}
+
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-150%) rotate(30deg);
+  }
+
+  100% {
+    transform: translateX(150%) rotate(30deg);
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.float {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fade-up 0.8s ease-out both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes gold-shimmer-move {
+  0% {
+    left: -150%;
+  }
+  100% {
+    left: 150%;
+  }
+}
+
+/* ADMIN PANEL LUXURY DESIGN SYSTEM OVERRIDES */
+.admin-console {
+  /* Subtle structural card and wrapper borders instead of transparent white */
+  --border: rgba(13, 44, 108, 0.12) !important;
+  --glass-border: rgba(13, 44, 108, 0.08) !important;
+}
+
+/* Ensure any explicit border utilities inside the admin page inherit standard diplomatic navy borders */
+.admin-console .border-white\/10 {
+  border-color: rgba(13, 44, 108, 0.12) !important;
+}
+.admin-console .border-white\/5 {
+  border-color: rgba(13, 44, 108, 0.06) !important;
+}
+.admin-console .border-t-white\/5,
+.admin-console .border-t-white\/10 {
+  border-top-color: rgba(13, 44, 108, 0.08) !important;
+}
+.admin-console .border-b-white\/5,
+.admin-console .border-b-white\/10 {
+  border-bottom-color: rgba(13, 44, 108, 0.08) !important;
+}
+
+/* Refined background card layers */
+.admin-console .bg-white\/5 {
+  background-color: rgba(13, 44, 108, 0.03) !important;
+}
+.admin-console .bg-white\/10 {
+  background-color: rgba(13, 44, 108, 0.06) !important;
+}
+
+/* Improve input background consistency and shadow inside the admin panel */
+.admin-console input[type="text"],
+.admin-console input[type="url"],
+.admin-console select,
+.admin-console textarea {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(13, 44, 108, 0.15) !important;
+  color: var(--veil) !important;
+  box-shadow: 0 2px 8px rgba(13, 44, 108, 0.02) inset;
+  transition: all 0.2s ease-in-out;
+}
+
+.admin-console input[type="text"]:focus,
+.admin-console input[type="url"]:focus,
+.admin-console select:focus,
+.admin-console textarea:focus {
+  background-color: #ffffff !important;
+  border-color: var(--sky) !important;
+  box-shadow: 0 0 0 3px rgba(0, 112, 192, 0.12), 0 2px 8px rgba(13, 44, 108, 0.02) inset !important;
+}
+
+
+
+/* ==========================================================================
+   SCROLL REVEAL ANIMATIONS
+   ========================================================================== */
+
+.reveal-fade-up {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.reveal-fade-up.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-fade-in {
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity;
+}
+
+.reveal-fade-in.active {
+  opacity: 1;
+}
+
+.reveal-heading {
+  opacity: 0;
+  transform: translateY(24px);
+  filter: blur(1.5px);
+  position: relative;
+  transition: 
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity, filter;
+}
+
+.reveal-heading.active {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+  text-shadow: 0 4px 20px rgba(0, 112, 192, 0.04);
+}
+
+/* Accent Underline Reveal on headings */
+.reveal-heading-underline {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 8px;
+}
+
+.reveal-heading-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 50px;
+  height: 3px;
+  background: currentColor; /* Inherits text color dynamically */
+  border-radius: 99px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s;
+  will-change: transform;
+}
+
+.reveal-heading-underline.active::after {
+  transform: scaleX(1);
+}

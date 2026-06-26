@@ -5,7 +5,8 @@ To move beyond the standard vertical timeline, here are three premium alternativ
 ---
 
 ## Option 1: The "Bento-Style" Impact Grid
-Instead of a linear timeline, this layout uses a modern "Bento Grid" (varied card sizes) to emphasize the *magnitude* of each role rather than just the sequence.
+
+Instead of a linear timeline, this layout uses a modern "Bento Grid" (varied card sizes) to emphasize the _magnitude_ of each role rather than just the sequence.
 
 - **Design**: Uses different card heights and widths. Key roles (like WHRC Chairman) get larger, "Hero" cards with more detail.
 - **Key Feature**: Each card includes a "Strategic Outcome" tag in gold.
@@ -13,6 +14,7 @@ Instead of a linear timeline, this layout uses a modern "Bento Grid" (varied car
 - **Aesthetic**: Premium glass cards with the new golden shimmer effect.
 
 ## Option 2: The "Horizontal Journey" Slider
+
 A cinematic, horizontal-scrolling experience that mimics a "Life Journey" film strip.
 
 - **Design**: A wide, scrollable container where cards move horizontally. A large "Timeline Progress Bar" at the bottom shows the year.
@@ -21,6 +23,7 @@ A cinematic, horizontal-scrolling experience that mimics a "Life Journey" film s
 - **Aesthetic**: Uses large background typography of the year (e.g., "2017") in a very faint, large outline behind each card.
 
 ## Option 3: The "Interactive Role Deep-Dive" (Sidebar Layout)
+
 A split-screen interaction where the left side lists the roles, and the right side reveals the detailed "Vision & Impact" for the selected role.
 
 - **Design**: Sticky left column with role titles. As the user scrolls (or clicks), the right side content fades in with high-quality imagery or large icons.
@@ -31,6 +34,7 @@ A split-screen interaction where the left side lists the roles, and the right si
 ---
 
 ## My Recommendation: **Option 1 (Bento Grid)**
+
 Given the existing Sapphire & Gold theme, a **Bento Grid** would allow us to use the new `shimmer` and `gold-glow` effects most effectively. We can make the most important roles (WHRC, UNPKFC) "glow" more prominently than others.
 
 > [!TIP]
@@ -39,6 +43,7 @@ Given the existing Sapphire & Gold theme, a **Bento Grid** would allow us to use
 # Implementation Plan for Option 1 (Bento Grid)
 
 ### [MODIFY] [index.tsx](file:///d:/CodeBase/RBR%20profile/global-leader-sphere-main/src/routes/index.tsx)
+
 - Replace the `timeline` section with a `grid lg:grid-cols-3` layout.
 - Use `lg:col-span-2` for major roles to create the Bento effect.
 - Add a "Role Type" badge (e.g., "Founder", "Director", "International") to each card.
