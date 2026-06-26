@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { ScrollReveal } from "../components/ScrollReveal";
 import { VerifiedBadge } from "../components/VerifiedBadge";
+import { SEO } from "../components/SEO";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
@@ -118,6 +119,10 @@ function Index() {
 
   return (
     <div className="relative min-h-screen text-foreground bg-midnight font-sans">
+      <SEO 
+        title="Global Leader Sphere | Verified Leader Profiles" 
+        description="Discover authentic, verified digital portfolios of global leaders, pioneers, academic experts, and public officials."
+      />
       {/* Background decoration blobs (wrapped to prevent overflow issues) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="blob bg-[#0070c0] w-[600px] h-[600px] -top-40 -right-40 opacity-10" />

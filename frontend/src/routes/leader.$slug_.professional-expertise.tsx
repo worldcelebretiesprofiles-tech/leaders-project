@@ -1,5 +1,6 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { getProfileBySlug, getProfiles } from "../services/api";
+import { SEO } from "../components/SEO";
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import {
@@ -272,6 +273,11 @@ function ProfessionalExpertise() {
 
   return (
     <div className="bg-midnight min-h-screen text-foreground relative overflow-hidden font-sans select-text">
+      <SEO 
+        title={`Professional Expertise | ${leader.name} | Global Leader Sphere`} 
+        description={leader.subtitle || `Professional Expertise of ${leader.name}`}
+        image={leader.portrait}
+      />
       <script type="application/ld+json">
         {JSON.stringify(schemaMarkup)}
       </script>

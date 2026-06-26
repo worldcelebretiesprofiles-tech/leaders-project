@@ -1,6 +1,7 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { getProfileBySlug, getProfiles } from "../services/api";
 import { LeaderProfileView } from "../components/LeaderProfileView";
+import { SEO } from "../components/SEO";
 import { ShieldAlert, ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/leader/$slug")({
@@ -23,7 +24,15 @@ export const Route = createFileRoute("/leader/$slug")({
 
 function LeaderProfile() {
   const { leader, allProfiles } = Route.useLoaderData();
-  return <LeaderProfileView leader={leader} allProfiles={allProfiles} />;
+  const title = `${leader.name} | Global Leader Profile | Global Leader Sphere`;
+  const description = leader.subtitle || `Verified global leader profile of ${leader.name} — ${leader.title}.`;
+  
+  return (
+    <>
+      <SEO title={title} description={description} image={leader.portrait} />
+      <LeaderProfileView leader={leader} allProfiles={allProfiles} />
+    </>
+  );
 }
 
 function LeaderNotFound() {

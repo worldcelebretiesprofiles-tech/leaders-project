@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { z } from "zod";
+import { SEO } from "../components/SEO";
 import {
   getProfiles,
   saveProfile,
@@ -3483,6 +3484,7 @@ function AdminDashboard() {
 
   return (
     <div className="admin-console relative min-h-screen text-foreground bg-midnight overflow-hidden py-10 px-6 lg:px-12">
+      <SEO title="Admin Dashboard | Global Leader Sphere" description="Secure admin dashboard for Global Leader Sphere" />
 
       {/* Background decoration blobs */}
       <div className={`blob w-[500px] h-[500px] -top-32 -right-32 opacity-10 transition-colors duration-500 ${
