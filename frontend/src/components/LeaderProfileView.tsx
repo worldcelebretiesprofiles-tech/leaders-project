@@ -40,6 +40,7 @@ import { DynamicIcon } from "./DynamicIcon";
 import { ScrollReveal } from "./ScrollReveal";
 import { HeadingFrame } from "./HeadingFrame";
 import { VerifiedBadge } from "./VerifiedBadge";
+import { resolveImageUrl } from "../services/api";
 
 interface LeaderProfileViewProps {
   leader: {
@@ -92,7 +93,7 @@ interface LeaderProfileViewProps {
         youtube?: string;
         customLinks?: Array<{ label: string; url: string }>;
       };
-      certificates?: Array<{ image: string; title: string; org: string; description: string; date: string; order?: number; alt?: string }>;
+      certificates?: Array<{ image: string; title: string; org: string; description: string; date: string; socialLink?: string; order?: number; alt?: string }>;
       myInitiatives?: Array<{
         id: string;
         title: string;
@@ -104,8 +105,8 @@ interface LeaderProfileViewProps {
           alt?: string;
         }>;
       }>;
-      newsArticles?: Array<{ image: string; title: string; description: string; source: string; date: string; link?: string; order?: number; alt?: string }>;
-      recentActivities?: Array<{ image: string; title: string; description: string; date: string; location?: string; order?: number; alt?: string }>;
+      newsArticles?: Array<{ image: string; title: string; description: string; source: string; date: string; link?: string; socialLink?: string; order?: number; alt?: string }>;
+      recentActivities?: Array<{ image: string; title: string; description: string; date: string; location?: string; socialLink?: string; order?: number; alt?: string }>;
     };
   };
   allProfiles: any[];
@@ -360,7 +361,7 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
                         >
                           <div className="size-8 rounded-full overflow-hidden border border-white/10 shrink-0 bg-white/5">
                             <img
-                              src={p.portrait}
+                              src={resolveImageUrl(p.portrait)}
                               alt={p.name}
                               className="w-full h-full object-cover"
                             />
@@ -541,7 +542,7 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
               <div className="ring-halo absolute -inset-2 rounded-[80px] opacity-60" />
               <div className="absolute inset-0 rounded-[80px] overflow-hidden glass-strong p-2">
                 <img
-                  src={leader.portrait}
+                  src={resolveImageUrl(leader.portrait)}
                   alt={`Portrait of ${leader.name}`}
                   width={1024}
                   height={1024}
@@ -680,7 +681,7 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
                 <div className="mt-6 glass rounded-3xl p-3 border-white/10 shadow-2xl relative group overflow-hidden">
                   <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden relative border border-white/5">
                     <img
-                      src={leader.data?.biodataImage || leader.portrait}
+                      src={resolveImageUrl(leader.data?.biodataImage || leader.portrait)}
                       alt={leader.name}
                       className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                       loading="lazy"
@@ -969,7 +970,7 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
                   {a.img && (
                     <div className="aspect-4/3 w-full overflow-hidden border-b border-[#7BA4D0]/10 bg-white/5">
                       <img
-                        src={a.img}
+                        src={resolveImageUrl(a.img)}
                         alt={a.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
@@ -1065,7 +1066,7 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
               >
                 <div className="aspect-[4/3] w-full rounded-xl overflow-hidden relative bg-white/5 border border-[#7BA4D0]/10">
                   <img
-                    src={cert.image}
+                    src={resolveImageUrl(cert.image)}
                     alt={cert.alt || cert.title}
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -1084,6 +1085,13 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
                   {cert.date && (
                     <div className="mt-2 text-[10px] text-muted-foreground font-semibold">
                       {cert.date}
+                    </div>
+                  )}
+                  {cert.socialLink && (
+                    <div className="mt-2 pt-2 border-t border-white/10">
+                      <a href={cert.socialLink} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-[11px] font-bold text-sky hover:underline">
+                        View on Social →
+                      </a>
                     </div>
                   )}
                 </div>
@@ -1157,7 +1165,7 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
                       }`}
                     >
                       <img
-                        src={img.image}
+                        src={resolveImageUrl(img.image)}
                         alt={img.alt || img.title}
                         loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700"
@@ -1272,7 +1280,7 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
                       {/* News Image */}
                       <div className="aspect-[16/10] w-full rounded-xl overflow-hidden relative bg-black/5 border border-[#7BA4D0]/10 shadow-sm shrink-0">
                         <img
-                          src={art.image}
+                          src={resolveImageUrl(art.image)}
                           alt={art.alt || art.title}
                           loading="lazy"
                           className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
@@ -1301,17 +1309,30 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
                           </p>
                         </div>
 
-                        {art.link && (
-                          <div className="mt-4 pt-3 border-t border-white/10">
-                            <a
-                              href={art.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="inline-flex items-center gap-1 text-[11px] font-bold text-sky hover:underline"
-                            >
-                              Read Full Article →
-                            </a>
+                        {(art.link || art.socialLink) && (
+                          <div className="mt-4 pt-3 border-t border-white/10 flex flex-wrap gap-3">
+                            {art.link && (
+                              <a
+                                href={art.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-[11px] font-bold text-sky hover:underline"
+                              >
+                                Read Full Article →
+                              </a>
+                            )}
+                            {art.socialLink && (
+                              <a
+                                href={art.socialLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-[11px] font-bold text-sky hover:underline"
+                              >
+                                View on Social →
+                              </a>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1365,7 +1386,7 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
               >
                 <div className="absolute inset-0 z-0">
                   <img
-                    src={act.image}
+                    src={resolveImageUrl(act.image)}
                     alt={act.alt || act.title}
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -1393,10 +1414,17 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
                   <h3 className="font-display text-sm md:text-base font-bold text-white leading-snug transform transition-transform duration-300 group-hover:-translate-y-1">
                     {act.title}
                   </h3>
-                  <div className="max-h-0 overflow-hidden opacity-0 group-hover:max-h-24 group-hover:opacity-100 transition-all duration-500 ease-in-out mt-0 group-hover:mt-2">
+                  <div className="max-h-0 overflow-hidden opacity-0 group-hover:max-h-32 group-hover:opacity-100 transition-all duration-500 ease-in-out mt-0 group-hover:mt-2 flex flex-col gap-2">
                     <p className="text-xs text-white/75 line-clamp-3 leading-relaxed">
                       {act.description}
                     </p>
+                    {act.socialLink && (
+                      <div>
+                        <a href={act.socialLink} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-[11px] font-bold text-sky hover:underline">
+                          View on Social →
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
               </article>
@@ -1761,7 +1789,7 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
                 {/* Main Image Container */}
                 <div className="relative max-h-[50vh] md:max-h-[60vh] max-w-full rounded-2xl overflow-hidden shadow-2xl border border-white/5 bg-neutral-900/50">
                   <img
-                    src={activeItem.image}
+                    src={resolveImageUrl(activeItem.image)}
                     alt={activeItem.alt || activeItem.title}
                     className="w-full h-full max-h-[50vh] md:max-h-[60vh] object-contain select-none"
                   />
@@ -1849,7 +1877,7 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
                       }`}
                     >
                       <img
-                        src={item.image}
+                        src={resolveImageUrl(item.image)}
                         alt={`thumbnail ${i + 1}`}
                         className="w-full h-full object-cover"
                       />
@@ -1884,7 +1912,7 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
             {selectedAward.img && (
               <div className="w-full aspect-video overflow-hidden bg-neutral-100 border-b border-[#7BA4D0]/10 flex items-center justify-center">
                 <img
-                  src={selectedAward.img}
+                  src={resolveImageUrl(selectedAward.img)}
                   alt={selectedAward.title}
                   className="w-full h-full object-cover"
                 />

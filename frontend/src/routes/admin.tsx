@@ -15,6 +15,7 @@ import {
   loginAdmin,
   getProfessionalExpertise,
   saveProfessionalExpertise,
+  resolveImageUrl,
 } from "../services/api";
 import {
   ShieldCheck,
@@ -340,7 +341,7 @@ function SectionArrayEditor({
               <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden bg-midnight border border-white/10 flex items-center justify-center relative">
                 {item.image ? (
                   <img
-                    src={item.image}
+                    src={resolveImageUrl(item.image)}
                     alt="Section preview"
                     className="w-full h-full object-cover"
                   />
@@ -737,7 +738,7 @@ function InitiativesEditor({
                   <div className="w-full md:w-44 shrink-0 flex flex-col items-center justify-center gap-2 border border-white/10 rounded-xl bg-midnight/30 p-3 relative overflow-hidden aspect-[4/3] md:aspect-auto md:h-32">
                     {item.image ? (
                       <img
-                        src={item.image}
+                        src={resolveImageUrl(item.image)}
                         alt="Preview"
                         className="w-full h-full object-cover rounded-lg absolute inset-0"
                       />
@@ -5549,10 +5550,11 @@ function AdminDashboard() {
                     sectionKey="certificates"
                     sectionTitle="Certificates"
                     sectionSubtitle="Manage professional certificates and qualifications."
-                    itemTemplate={{ image: "", title: "", org: "", description: "", date: "" }}
+                    itemTemplate={{ image: "", title: "", org: "", description: "", date: "", socialLink: "" }}
                     customFields={[
                       { key: "org", label: "Issuing Organization", placeholder: "e.g. WHRC Headquarters" },
                       { key: "date", label: "Date", placeholder: "e.g. 2026-06-08" },
+                      { key: "socialLink", label: "Social Media Link (Optional)", placeholder: "https://instagram.com/..." },
                     ]}
                     selectedProfile={selectedProfile}
                     updateDataSection={updateDataSection}
@@ -5575,11 +5577,12 @@ function AdminDashboard() {
                     sectionKey="newsArticles"
                     sectionTitle="News Articles"
                     sectionSubtitle="Manage newspaper clippings, headline news, and publication records."
-                    itemTemplate={{ image: "", title: "", description: "", source: "", date: "", link: "" }}
+                    itemTemplate={{ image: "", title: "", description: "", source: "", date: "", link: "", socialLink: "" }}
                     customFields={[
                       { key: "source", label: "Publication Source", placeholder: "e.g. Times of India" },
                       { key: "date", label: "Publication Date", placeholder: "e.g. 2026-05-15" },
                       { key: "link", label: "Article Link (Optional)", placeholder: "https://example.com/article" },
+                      { key: "socialLink", label: "Social Media Link (Optional)", placeholder: "https://instagram.com/..." },
                     ]}
                     selectedProfile={selectedProfile}
                     updateDataSection={updateDataSection}
@@ -5593,10 +5596,11 @@ function AdminDashboard() {
                     sectionKey="recentActivities"
                     sectionTitle="Recent Activities"
                     sectionSubtitle="Manage active stages, recent events, and locations."
-                    itemTemplate={{ image: "", title: "", description: "", date: "", location: "" }}
+                    itemTemplate={{ image: "", title: "", description: "", date: "", location: "", socialLink: "" }}
                     customFields={[
                       { key: "date", label: "Activity Date", placeholder: "e.g. 2026-06-01" },
                       { key: "location", label: "Location", placeholder: "e.g. Guntur, Andhra Pradesh" },
+                      { key: "socialLink", label: "Social Media Link (Optional)", placeholder: "https://instagram.com/..." },
                     ]}
                     selectedProfile={selectedProfile}
                     updateDataSection={updateDataSection}

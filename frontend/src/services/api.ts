@@ -1,6 +1,15 @@
-const getBaseUrl = () => {
+export const getBaseUrl = () => {
   const url = (import.meta.env.VITE_API_URL as string) || "";
   return url.replace(/\/+$/, "");
+};
+
+export const resolveImageUrl = (imgObj: any) => {
+  if (!imgObj) return "";
+  let url = typeof imgObj === "string" ? imgObj : imgObj.secure_url || "";
+  if (url.startsWith("/uploads/")) {
+    return `${getBaseUrl()}${url}`;
+  }
+  return url;
 };
 
 const getHeaders = (extraHeaders: Record<string, string> = {}) => {
