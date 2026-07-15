@@ -123,11 +123,13 @@ app.get("/api/v1/profiles", async (req, res) => {
            pe.professional_journey, pe.current_activities, pe.how_i_help, pe.services_consultations,
            pe.professional_gallery, pe.publications, pe.media_interviews, pe.testimonials,
            pe.organizations_associations, pe.contact_collaboration,
+           fd.father_name, fd.mother_name, fd.spouse_name, fd.children, fd.background, fd.images AS family_images,
            p.created_at, p.updated_at 
     FROM profiles p
     LEFT JOIN categories c ON p.category_id = c.id
     LEFT JOIN subcategories s ON p.subcategory_id = s.id
     LEFT JOIN professional_expertise pe ON p.id = pe.profile_id
+    LEFT JOIN family_details fd ON p.id = fd.profile_id
     WHERE 1=1
   `;
   const params: any[] = [];
@@ -226,11 +228,13 @@ app.get("/api/v1/profiles/:slug", async (req, res) => {
               pe.professional_journey, pe.current_activities, pe.how_i_help, pe.services_consultations,
               pe.professional_gallery, pe.publications, pe.media_interviews, pe.testimonials,
               pe.organizations_associations, pe.contact_collaboration,
+              fd.father_name, fd.mother_name, fd.spouse_name, fd.children, fd.background, fd.images AS family_images,
               p.created_at, p.updated_at 
        FROM profiles p
        LEFT JOIN categories c ON p.category_id = c.id
        LEFT JOIN subcategories s ON p.subcategory_id = s.id
        LEFT JOIN professional_expertise pe ON p.id = pe.profile_id
+       LEFT JOIN family_details fd ON p.id = fd.profile_id
        WHERE p.slug = $1`,
       [slug]
     );
@@ -532,6 +536,90 @@ app.post("/api/v1/profiles/:id/professional-expertise", authMiddleware, async (r
   } catch (err) {
     console.error(`Failed to save professional expertise for profile ${profileId}:`, err);
     res.status(500).json({ error: "Failed to save professional expertise" });
+  }
+});
+
+// --- 4.3. Get Family Details for Admin (Auth Required) ---
+app.get("/api/v1/profiles/:id/family", authMiddleware, async (req, res) => {
+  const profileId = parseInt(req.params.id, 10);
+  try {
+    const result = await query(
+      "SELECT * FROM family_details WHERE profile_id = $1",
+      [profileId]
+    );
+    if (result.rows.length === 0) {
+      // Return default draft values
+      return res.json({
+        profile_id: profileId,
+        father_name: "",
+        mother_name: "",
+        spouse_name: "",
+        children: [],
+        background: "",
+        images: []
+      });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(`Failed to fetch family details for profile ${profileId}:`, err);
+    res.status(500).json({ error: "Failed to fetch family details" });
+  }
+});
+
+// --- 4.4. Save Family Details (Auth Required) ---
+app.post("/api/v1/profiles/:id/family", authMiddleware, async (req, res) => {
+  const profileId = parseInt(req.params.id, 10);
+  const data = req.body;
+
+  try {
+    const profileCheck = await query("SELECT id FROM profiles WHERE id = $1", [profileId]);
+    if (profileCheck.rows.length === 0) {
+      return res.status(404).json({ error: "Profile not found" });
+    }
+
+    const {
+      father_name,
+      mother_name,
+      spouse_name,
+      children,
+      background,
+      images
+    } = data;
+
+    const upsertQuery = `
+      INSERT INTO family_details (
+        profile_id, father_name, mother_name, spouse_name, children, background, images, updated_at
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP
+      )
+      ON CONFLICT (profile_id)
+      DO UPDATE SET
+        father_name = EXCLUDED.father_name,
+        mother_name = EXCLUDED.mother_name,
+        spouse_name = EXCLUDED.spouse_name,
+        children = EXCLUDED.children,
+        background = EXCLUDED.background,
+        images = EXCLUDED.images,
+        updated_at = CURRENT_TIMESTAMP
+      RETURNING id;
+    `;
+
+    const values = [
+      profileId,
+      father_name || "",
+      mother_name || "",
+      spouse_name || "",
+      JSON.stringify(children || []),
+      background || "",
+      JSON.stringify(images || [])
+    ];
+
+    const result = await query(upsertQuery, values);
+    res.json({ success: true, id: result.rows[0].id });
+  } catch (err) {
+    console.error(`Failed to save family details for profile ${profileId}:`, err);
+    res.status(500).json({ error: "Failed to save family details" });
   }
 });
 

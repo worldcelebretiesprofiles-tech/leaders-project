@@ -51,6 +51,12 @@ interface LeaderProfileViewProps {
     subtitle: string;
     portrait: string;
     is_published?: boolean;
+    father_name?: string;
+    mother_name?: string;
+    spouse_name?: string;
+    children?: any;
+    background?: string;
+    family_images?: any;
     data: {
       roles?: Array<{ icon: string; label: string }>;
       stats?: Array<{ value: string; label: string }>;
@@ -745,6 +751,76 @@ export function LeaderProfileView({ leader, allProfiles }: LeaderProfileViewProp
               </article>
             )}
           </div>
+        </section>
+      )}
+
+      {/* FAMILY SECTION */}
+      {(leader.father_name || leader.mother_name || leader.spouse_name || leader.background || (leader.family_images && typeof leader.family_images === 'string' ? JSON.parse(leader.family_images) : leader.family_images)?.length > 0) && (
+        <section id="family" className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 pb-16">
+          <ScrollReveal animation="fade-up" delay={0}>
+            <SectionLabel>Family</SectionLabel>
+          </ScrollReveal>
+          <div className="mt-2 mb-2">
+            <HeadingFrame theme="gradient">
+              <h2 className="font-display text-4xl lg:text-5xl font-bold text-gradient reveal-heading-underline mb-0 pb-0">
+                Family details & background
+              </h2>
+            </HeadingFrame>
+          </div>
+          
+          <div className="mt-6 grid lg:grid-cols-2 gap-6">
+            <article className="glass rounded-xl p-10 border-white/10 space-y-6">
+              <div className="flex items-center gap-2.5 text-base font-bold text-sky mb-2">
+                <Users className="size-5" /> Family members
+              </div>
+              <ul className="space-y-4 text-foreground/80">
+                {leader.father_name && <li><span className="font-bold text-foreground">Father:</span> {leader.father_name}</li>}
+                {leader.mother_name && <li><span className="font-bold text-foreground">Mother:</span> {leader.mother_name}</li>}
+                {leader.spouse_name && <li><span className="font-bold text-foreground">Spouse / Partner:</span> {leader.spouse_name}</li>}
+                {leader.children && (() => {
+                  const parsedChildren = typeof leader.children === 'string' ? JSON.parse(leader.children) : leader.children;
+                  if (parsedChildren?.length > 0) {
+                    return <li><span className="font-bold text-foreground">Children:</span> {parsedChildren.join(', ')}</li>;
+                  }
+                  return null;
+                })()}
+              </ul>
+            </article>
+
+            {leader.background && (
+              <article className="glass rounded-xl p-10 border-white/10">
+                <div className="flex items-center gap-2.5 text-base font-bold text-sky mb-4">
+                  <BookOpen className="size-5" /> Background & History
+                </div>
+                <p className="text-lg text-foreground/80 leading-relaxed">{leader.background}</p>
+              </article>
+            )}
+          </div>
+          
+          {(() => {
+            const images = typeof leader.family_images === 'string' ? JSON.parse(leader.family_images) : (leader.family_images || []);
+            if (images.length > 0) {
+              return (
+                <div className="mt-8">
+                  <div className="flex items-center gap-2.5 text-base font-bold text-sky mb-4 px-2">
+                    <Images className="size-5" /> Family Photos
+                  </div>
+                  <div className="flex overflow-x-auto gap-4 pb-4 snap-x">
+                    {images.map((img: string, idx: number) => (
+                      <div key={idx} className="shrink-0 snap-center">
+                        <img 
+                          src={resolveImageUrl(img)} 
+                          alt="Family" 
+                          className="h-64 lg:h-80 w-auto rounded-xl object-cover shadow-xl border border-white/10" 
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
         </section>
       )}
 

@@ -192,3 +192,26 @@ export async function saveProfessionalExpertise(profileId: number, expertiseData
   }
   return res.json();
 }
+
+export async function getFamilyDetails(profileId: number) {
+  const res = await fetch(`${getBaseUrl()}/api/v1/profiles/${profileId}/family`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch family details");
+  return res.json();
+}
+
+export async function saveFamilyDetails(profileId: number, familyData: any) {
+  const res = await fetch(`${getBaseUrl()}/api/v1/profiles/${profileId}/family`, {
+    method: "POST",
+    headers: getHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(familyData),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || "Failed to save family details");
+  }
+  return res.json();
+}

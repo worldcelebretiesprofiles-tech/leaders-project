@@ -33,6 +33,7 @@ import {
   ChevronDown,
   Info,
   Award,
+  Users,
   BookOpen,
   CalendarDays,
   FileText,
@@ -57,9 +58,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { DynamicIcon, POPULAR_LEADER_ICONS } from "../components/DynamicIcon";
+import { FamilyDetailsEditor } from "../components/FamilyDetailsEditor";
 
 const adminSearchSchema = z.object({
-  mode: z.enum(["list", "edit", "expertise-edit"]).catch("list"),
+  mode: z.enum(["list", "edit", "expertise-edit", "family-edit"]).catch("list"),
   profileId: z.number().optional(),
   section: z.string().catch("general"),
 });
@@ -2677,13 +2679,13 @@ function AdminDashboard() {
   }, [token]);
 
   // Helper setters that write to URL query parameters
-  const setMode = (newMode: "list" | "edit" | "expertise-edit") => {
+  const setMode = (newMode: "list" | "edit" | "expertise-edit" | "family-edit") => {
     router.navigate({
       to: "/admin",
       search: (prev: any) => ({
         ...prev,
         mode: newMode,
-        profileId: newMode === "list" ? undefined : prev.profileId,
+        profileId: (newMode === "list" || newMode === "create") ? undefined : prev.profileId,
       }),
     });
   };
@@ -2732,7 +2734,7 @@ function AdminDashboard() {
 
   // Synchronize URL search parameters with the draft profile state
   useEffect(() => {
-    if (mode === "edit" || mode === "expertise-edit") {
+    if (mode === "edit" || mode === "expertise-edit" || mode === "family-edit") {
       if (profileId) {
         const found = profiles.find((p: any) => p.id === profileId);
         if (found) {
@@ -3506,7 +3508,7 @@ function AdminDashboard() {
         </div>
 
         <div className="flex items-center gap-3">
-          {mode === "edit" || mode === "expertise-edit" ? (
+          {mode === "edit" || mode === "expertise-edit" || mode === "family-edit" ? (
             <button
               onClick={() => {
                 if (confirm("Discard unsaved changes?")) {
@@ -4102,9 +4104,7 @@ function AdminDashboard() {
                 isSaving={isSaving}
               />
             ) : (
-              /* ========================================================================= */
-              /* 2. DYNAMIC PROFILE FORMS BUILDER                                         */
-              /* ========================================================================= */
+              /* Basic Profile Form */
               <div className="grid lg:grid-cols-12 gap-8 items-start animate-fade-in">
             {/* Left Sidebar Category Switcher */}
             <div className="lg:col-span-3 glass-strong rounded-3xl p-5 border-white/10 space-y-1">
@@ -4119,6 +4119,7 @@ function AdminDashboard() {
                 { id: "stats", label: "Impact Stats Grid", icon: Activity },
                 { id: "bio", label: "Biodata Table", icon: FileText },
                 { id: "biography", label: "Biography Chapters", icon: BookOpen },
+                { id: "family", label: "Family Details", icon: Users },
                 { id: "timeline", label: "Timeline Milestones", icon: CalendarDays },
                 { id: "focus", label: "Core Organisation Focus", icon: ShieldCheck },
                 { id: "initiatives", label: "Key Initiatives", icon: Megaphone },
@@ -4184,6 +4185,8 @@ function AdminDashboard() {
                           ? "Biodata Table Manager"
                           : activeSection === "stats"
                             ? "Impact Stats Grid"
+                            : activeSection === "family"
+                              ? "Family Details & Background"
                             : activeSection === "timeline"
                               ? "Timeline Achievements"
                               : activeSection === "csvImport"
@@ -4840,6 +4843,18 @@ function AdminDashboard() {
                       />
                     </div>
                   </div>
+                )}
+
+                {/* ========================================================================= */}
+                {/* SUBSECTION: FAMILY DETAILS                                                */}
+                {/* ========================================================================= */}
+                {activeSection === "family" && (
+                  <FamilyDetailsEditor
+                    profileId={selectedProfile.id}
+                    profileName={selectedProfile.name}
+                    profileSlug={selectedProfile.slug}
+                    embedded
+                  />
                 )}
 
                 {/* ========================================================================= */}
