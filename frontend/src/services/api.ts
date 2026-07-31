@@ -27,20 +27,7 @@ export const getHeaders = (extraHeaders: Record<string, string> = {}) => {
   return headers;
 };
 
-export async function loginAdmin(password: string) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/auth/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ password }),
-  });
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error || "Authentication failed");
-  }
-  return res.json();
-}
+
 
 export async function getProfiles(filters?: { category_id?: number; subcategory_id?: number }) {
   let url = `${getBaseUrl()}/api/v1/profiles`;

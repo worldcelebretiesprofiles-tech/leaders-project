@@ -1,5 +1,4 @@
 import { query } from "../db";
-import bcrypt from "bcrypt";
 
 const defaultLeaderData = {
   roles: [
@@ -144,23 +143,7 @@ async function seed() {
   await query("TRUNCATE profiles, professional_expertise, categories, subcategories CASCADE;");
   console.log("Truncation complete.");
 
-  // 1. Seed admin credentials
-  const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
-  const username = "admin";
-  
-  const existingAdmin = await query("SELECT id FROM admins WHERE username = $1", [username]);
-  if (existingAdmin.rows.length === 0) {
-    console.log(`Seeding default admin user: ${username}`);
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(adminPassword, salt);
-    await query(
-      "INSERT INTO admins (username, password_hash) VALUES ($1, $2)",
-      [username, passwordHash]
-    );
-    console.log("Admin user seeded successfully.");
-  } else {
-    console.log("Admin user already exists. Skipping.");
-  }
+
 
   // 2. Seed default categories & subcategories if empty
   const catCheck = await query("SELECT COUNT(*) FROM categories");

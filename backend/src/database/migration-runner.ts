@@ -10,6 +10,7 @@ import * as m008 from "./migrations/008_link_profiles_to_users";
 import * as m009 from "./migrations/009_create_profile_versions";
 import * as m010 from "./migrations/010_add_audit_and_notifications";
 import * as m011 from "./migrations/011_add_analytics";
+import * as m012 from "./migrations/012_drop_admins_table";
 
 interface Migration {
   name: string;
@@ -28,7 +29,8 @@ const migrations: Migration[] = [
   { name: "008_link_profiles_to_users", up: m008.up, down: m008.down },
   { name: "009_create_profile_versions", up: m009.up, down: m009.down },
   { name: "010_add_audit_and_notifications", up: m010.up, down: m010.down },
-  { name: "011_add_analytics", up: m011.up, down: m011.down }
+  { name: "011_add_analytics", up: m011.up, down: m011.down },
+  { name: "012_drop_admins_table", up: m012.up, down: m012.down }
 ];
 
 async function ensureMigrationTable() {

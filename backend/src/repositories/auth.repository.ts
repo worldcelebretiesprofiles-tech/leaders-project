@@ -1,11 +1,7 @@
 import { query } from "../database/db";
 
 export class AuthRepository {
-  static async getAdminByUsername(username: string) {
-    const result = await query("SELECT password_hash FROM admins WHERE username = $1", [username]);
-    if (result.rows.length === 0) return null;
-    return result.rows[0];
-  }
+
   static async getAppUserByAuthId(authUserId: string) {
     const result = await query(
       "SELECT id, auth_user_id, email, role, status, created_at, updated_at FROM app_users WHERE auth_user_id = $1 AND deleted_at IS NULL",

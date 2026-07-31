@@ -1,11 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { createClient } from "@supabase/supabase-js";
 import { query } from "../database/db";
-import jwt from "jsonwebtoken";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://placeholder-url.supabase.co";
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || "placeholder-key";
-const JWT_SECRET = process.env.JWT_SECRET || "default_dev_secret_key_change_in_prod";
 
 // Use Supabase client for JWT verification
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -30,32 +28,7 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
   const token = authHeader.split(" ")[1];
 
   try {
-    // 1. Try local admin JWT verification first
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
-      if (decoded && decoded.username === "admin") {
-        const result = await query(
-          "SELECT id, auth_user_id, email, role, status FROM app_users WHERE email = $1 AND deleted_at IS NULL",
-          ["admin@admin.com"]
-        );
-        if (result.rows.length > 0) {
-          const appUser = result.rows[0];
-          req.user = {
-            id: appUser.id,
-            auth_user_id: appUser.auth_user_id,
-            email: appUser.email,
-            role: appUser.role,
-            status: appUser.status,
-            isAdmin: true,
-          };
-          return next();
-        }
-      }
-    } catch (localErr) {
-      // Not a valid local admin token, fallback to Supabase verification
-    }
-
-    // 2. Verify token with Supabase
+    // 1. Verify token with Supabase
     const { data: { user }, error } = await supabase.auth.getUser(token);
     
     if (error || !user) {

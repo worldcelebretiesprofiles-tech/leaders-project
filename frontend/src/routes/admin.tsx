@@ -12,7 +12,6 @@ import {
   deleteCategory,
   saveSubcategory,
   deleteSubcategory,
-  loginAdmin,
   getProfessionalExpertise,
   saveProfessionalExpertise,
   resolveImageUrl,
@@ -889,32 +888,9 @@ function InitiativesEditor({
 }
 
 function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
-  const [authMethod, setAuthMethod] = useState<"supabase" | "legacy">("supabase");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const handleLegacySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!password) {
-      toast.error("Please enter the administrator password");
-      return;
-    }
-    setLoading(true);
-    try {
-      const data = await loginAdmin(password);
-      if (data.token) {
-        onLogin(data.token);
-        toast.success("Welcome back, Administrator (Legacy Fallback)!");
-      } else {
-        toast.error("Invalid response from authentication server");
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to log in. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSupabaseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -976,118 +952,58 @@ function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
           <p className="text-xs text-slate-400 mt-1">Authorized Administration Console</p>
         </div>
 
-        {/* Tab Toggle */}
-        <div className="flex bg-slate-100 p-1 rounded-xl mb-6 border border-slate-200/50">
+        <form onSubmit={handleSupabaseSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              Email Address
+            </label>
+            <div className="relative">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@admin.com"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition-all text-slate-880"
+                disabled={loading}
+                autoFocus
+              />
+              <Mail className="size-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition-all text-slate-800"
+                disabled={loading}
+              />
+              <Lock className="size-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            </div>
+          </div>
+
           <button
-            type="button"
-            onClick={() => setAuthMethod("supabase")}
-            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-              authMethod === "supabase" ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-700"
-            }`}
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
           >
-            Supabase Login
+            {loading ? (
+              <>
+                <Loader2 className="size-4 animate-spin" /> Verifying...
+              </>
+            ) : (
+              <>
+                <ShieldCheck className="size-4" /> Sign In (Supabase)
+              </>
+            )}
           </button>
-          <button
-            type="button"
-            onClick={() => setAuthMethod("legacy")}
-            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-              authMethod === "legacy" ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-700"
-            }`}
-          >
-            Legacy Fallback
-          </button>
-        </div>
-
-        {authMethod === "supabase" ? (
-          <form onSubmit={handleSupabaseSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Email Address
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@admin.com"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition-all text-slate-800"
-                  disabled={loading}
-                  autoFocus
-                />
-                <Mail className="size-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition-all text-slate-800"
-                  disabled={loading}
-                />
-                <Lock className="size-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" /> Verifying...
-                </>
-              ) : (
-                <>
-                  <ShieldCheck className="size-4" /> Sign In (Supabase)
-                </>
-              )}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleLegacySubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Admin Password
-              </label>
-              <div className="relative">
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition-all text-slate-800"
-                  disabled={loading}
-                  autoFocus
-                />
-                <Lock className="size-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-slate-800 hover:bg-slate-700 text-white rounded-xl py-3 text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" /> Verifying...
-                </>
-              ) : (
-                <>
-                  <ShieldCheck className="size-4" /> Unlock Admin Panel
-                </>
-              )}
-            </button>
-          </form>
-        )}
+        </form>
 
         <div className="mt-6 text-center border-t border-slate-100 pt-4">
           <Link

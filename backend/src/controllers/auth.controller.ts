@@ -4,16 +4,6 @@ import { sendSuccess } from "../utils/apiResponse";
 import { AuthenticatedRequest } from "../middleware/auth";
 
 export class AuthController {
-  static async login(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { password } = req.body;
-      const result = await AuthService.login(password);
-      sendSuccess(res, result);
-    } catch (err) {
-      next(err);
-    }
-  }
-
   static async getMe(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthenticatedRequest;
