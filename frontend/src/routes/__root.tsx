@@ -108,14 +108,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 import { Toaster } from "sonner";
+import { AuthProvider } from "../contexts/AuthContext";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <Toaster theme="dark" closeButton />
-    </QueryClientProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <Outlet />
+        <Toaster theme="dark" closeButton />
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }

@@ -1,16 +1,16 @@
 import { query } from "../database/db";
 
 export class ProfileRepository {
-  static async getProfiles(categoryId?: number, subcategoryId?: number, sortBy = "id", sortOrder = "ASC", limit?: number, offset?: number) {
+  static async getProfiles(categoryId?: number, subcategoryId?: number, sortBy = "id", sortOrder = "ASC", limit?: number, offset?: number, status?: string) {
     let queryText = `
-      SELECT p.id, p.slug, p.name, p.title, p.subtitle, p.portrait, p.data, p.category_id, p.subcategory_id,
+      SELECT p.id, p.slug, p.name, p.title, p.subtitle, p.portrait, p.data, p.category_id, p.subcategory_id, p.status, p.owner_id,
              c.name AS category_name, c.slug AS category_slug,
              s.name AS subcategory_name, s.slug AS subcategory_slug,
              pe.roles, pe.expertise_areas, pe.services_offered, pe.industries_served,
              pe.who_i_help, pe.languages, pe.years_experience, pe.professional_summary, pe.keywords,
              pe.is_available_for_consultation, pe.cta_text, pe.impact_statistics, pe.achievements,
              pe.featured_services, pe.is_published,
-             pe.status, pe.published_at, pe.published_by, pe.section_visibility, pe.contact_types,
+             pe.status AS expertise_status, pe.published_at, pe.published_by, pe.section_visibility, pe.contact_types,
              pe.professional_journey, pe.current_activities, pe.how_i_help, pe.services_consultations,
              pe.professional_gallery, pe.publications, pe.media_interviews, pe.testimonials,
              pe.organizations_associations, pe.contact_collaboration,
@@ -28,6 +28,11 @@ export class ProfileRepository {
     if (categoryId) {
       params.push(categoryId);
       queryText += ` AND p.category_id = $${params.length}`;
+    }
+
+    if (status) {
+      params.push(status);
+      queryText += ` AND p.status = $${params.length}`;
     }
 
     if (subcategoryId) {
@@ -52,14 +57,15 @@ export class ProfileRepository {
 
   static async getProfileBySlug(slug: string) {
     const result = await query(
-      `SELECT p.id, p.slug, p.name, p.title, p.subtitle, p.portrait, p.data, p.category_id, p.subcategory_id,
+      `SELECT p.id, p.slug, p.name, p.title, p.subtitle, p.portrait, p.data, p.category_id, p.subcategory_id, p.status, p.owner_id,
+              p.current_version_id, p.latest_version_number, p.is_published, p.submitted_at, p.last_published_at, p.change_summary,
               c.name AS category_name, c.slug AS category_slug,
               s.name AS subcategory_name, s.slug AS subcategory_slug,
               pe.roles, pe.expertise_areas, pe.services_offered, pe.industries_served,
               pe.who_i_help, pe.languages, pe.years_experience, pe.professional_summary, pe.keywords,
               pe.is_available_for_consultation, pe.cta_text, pe.impact_statistics, pe.achievements,
               pe.featured_services, pe.is_published,
-              pe.status, pe.published_at, pe.published_by, pe.section_visibility, pe.contact_types,
+              pe.status AS expertise_status, pe.published_at, pe.published_by, pe.section_visibility, pe.contact_types,
               pe.professional_journey, pe.current_activities, pe.how_i_help, pe.services_consultations,
               pe.professional_gallery, pe.publications, pe.media_interviews, pe.testimonials,
               pe.organizations_associations, pe.contact_collaboration,
@@ -76,28 +82,94 @@ export class ProfileRepository {
     return result.rows.length > 0 ? result.rows[0] : null;
   }
 
+  static async getProfileVersion(versionId: number) {
+    const result = await query(
+      `SELECT * FROM profile_versions WHERE id = $1`,
+      [versionId]
+    );
+    return result.rows.length > 0 ? result.rows[0] : null;
+  }
+
   static async checkProfileExistsById(id: number) {
     const result = await query("SELECT id FROM profiles WHERE id = $1", [id]);
     return result.rows.length > 0;
   }
 
-  static async createProfile(profile: any, categoryId: number | null, subcategoryId: number | null) {
+  static async createProfile(profile: any, categoryId: number | null, subcategoryId: number | null, ownerId?: string, status: string = 'DRAFT') {
     const result = await query(
-      `INSERT INTO profiles (slug, name, title, subtitle, portrait, category_id, subcategory_id, data)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO profiles (slug, name, title, subtitle, portrait, category_id, subcategory_id, data, owner_id, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING id`,
       [
         profile.slug,
-        profile.name,
-        profile.title,
-        profile.subtitle,
-        profile.portrait,
+        profile.name || 'New Profile',
+        profile.title || null,
+        profile.subtitle || null,
+        profile.portrait || null,
         categoryId,
         subcategoryId,
-        JSON.stringify(profile.data),
+        JSON.stringify(profile.data || {}),
+        ownerId || null,
+        status
       ]
     );
     return result.rows[0].id;
+  }
+
+  static async getProfileByOwnerId(ownerId: string) {
+    const result = await query(
+      `SELECT p.id, p.slug, p.name, p.title, p.subtitle, p.portrait, p.data, p.category_id, p.subcategory_id, p.status, p.owner_id,
+              p.current_version_id, p.latest_version_number, p.is_published, p.submitted_at, p.last_published_at, p.change_summary,
+              c.name AS category_name, c.slug AS category_slug,
+              s.name AS subcategory_name, s.slug AS subcategory_slug,
+              pe.roles, pe.expertise_areas, pe.services_offered, pe.industries_served,
+              pe.who_i_help, pe.languages, pe.years_experience, pe.professional_summary, pe.keywords,
+              pe.is_available_for_consultation, pe.cta_text, pe.impact_statistics, pe.achievements,
+              pe.featured_services, pe.is_published,
+              pe.status AS expertise_status, pe.published_at, pe.published_by, pe.section_visibility, pe.contact_types,
+              pe.professional_journey, pe.current_activities, pe.how_i_help, pe.services_consultations,
+              pe.professional_gallery, pe.publications, pe.media_interviews, pe.testimonials,
+              pe.organizations_associations, pe.contact_collaboration,
+              fd.father_name, fd.mother_name, fd.spouse_name, fd.children, fd.background, fd.images AS family_images,
+              p.created_at, p.updated_at 
+       FROM profiles p
+       LEFT JOIN categories c ON p.category_id = c.id
+       LEFT JOIN subcategories s ON p.subcategory_id = s.id
+       LEFT JOIN professional_expertise pe ON p.id = pe.profile_id
+       LEFT JOIN family_details fd ON p.id = fd.profile_id
+       WHERE p.owner_id = $1`,
+      [ownerId]
+    );
+    return result.rows.length > 0 ? result.rows[0] : null;
+  }
+
+  static async updateProfilePartial(id: number, partialData: any) {
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    for (const key of Object.keys(partialData)) {
+      if (['name', 'title', 'subtitle', 'portrait', 'category_id', 'subcategory_id', 'status', 'slug', 'change_summary'].includes(key)) {
+        fields.push(`${key} = $${idx}`);
+        values.push(partialData[key]);
+        idx++;
+      } else if (key === 'data') {
+        fields.push(`data = data || $${idx}::jsonb`);
+        values.push(JSON.stringify(partialData.data));
+        idx++;
+      }
+    }
+
+    if (fields.length === 0) return;
+
+    fields.push(`updated_at = CURRENT_TIMESTAMP`);
+    if (partialData.status === 'SUBMITTED') {
+      fields.push(`submitted_at = CURRENT_TIMESTAMP`);
+    }
+    values.push(id);
+    
+    const queryText = `UPDATE profiles SET ${fields.join(', ')} WHERE id = $${idx}`;
+    await query(queryText, values);
   }
 
   static async updateProfile(id: number, profile: any, categoryId: number | null, subcategoryId: number | null) {

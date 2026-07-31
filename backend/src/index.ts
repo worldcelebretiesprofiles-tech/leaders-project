@@ -12,6 +12,9 @@ import subcategoryRoutes from "./routes/subcategory.routes";
 import profileRoutes from "./routes/profile.routes";
 import uploadRoutes from "./routes/upload.routes";
 import sitemapRoutes from "./routes/sitemap.routes";
+import applicationRoutes from "./routes/application.routes";
+import analyticsRoutes from "./routes/analytics.routes";
+import { notificationRoutes } from "./routes/notification.routes";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -83,6 +86,9 @@ app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/subcategories", subcategoryRoutes);
 app.use("/api/v1/upload", uploadRoutes);
 app.use("/api/v1/sitemap.xml", sitemapRoutes);
+app.use("/api/v1/applications", applicationRoutes);
+app.use("/api/v1/analytics", analyticsRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
 
 // Global Error Handler Middleware
 app.use(errorHandler);

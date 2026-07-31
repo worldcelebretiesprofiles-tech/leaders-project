@@ -266,10 +266,10 @@ function ProfessionalExpertise() {
   };
 
   // Find single featured items
-  const featuredPublication = publications.find((p) => p.featured === true);
-  const featuredAchievement = achievements.find((a) => a.featured === true);
-  const featuredTestimonial = testimonials.find((t) => t.featured === true);
-  const featuredService = servicesConsultations.find((s) => s.featured === true);
+  const featuredPublication = publications.find((p: any) => p.featured === true);
+  const featuredAchievement = achievements.find((a: any) => a.featured === true);
+  const featuredTestimonial = testimonials.find((t: any) => t.featured === true);
+  const featuredService = servicesConsultations.find((s: any) => s.featured === true);
 
   return (
     <div className="bg-midnight min-h-screen text-foreground relative overflow-hidden font-sans select-text">
@@ -1368,7 +1368,7 @@ function ProfessionalExpertise() {
                     <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider block w-full mb-1">
                       Open for opportunities in:
                     </span>
-                    {contactTypes.map((type) => (
+                    {contactTypes.map((type: string) => (
                       <span key={type} className="px-3 py-1.5 rounded-full border border-sky/20 bg-sky/5 text-[10px] font-bold text-sky uppercase tracking-wider">
                         {type}
                       </span>

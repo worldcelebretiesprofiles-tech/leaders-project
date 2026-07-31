@@ -24,6 +24,7 @@ import {
   ChevronLeft,
   Menu,
   X,
+  User,
 } from "lucide-react";
 import { ScrollReveal } from "../components/ScrollReveal";
 import { VerifiedBadge } from "../components/VerifiedBadge";
@@ -208,6 +209,12 @@ function Index() {
           {/* Secure Admin Console Route Link & Hamburger */}
           <div className="flex items-center gap-3">
             <Link
+              to="/login"
+              className="hidden sm:inline-flex glass rounded-full px-5 py-2.5 text-xs font-bold items-center gap-2 hover:bg-white/10 hover:border-white/20 transition text-foreground border border-white/10 shadow-lg"
+            >
+              <User className="size-3.5" /> Client Login
+            </Link>
+            <Link
               to="/admin"
               className="hidden sm:inline-flex glass rounded-full px-5 py-2.5 text-xs font-bold items-center gap-2 hover:bg-white/10 hover:border-white/20 transition text-sky border border-sky/20 shadow-lg"
             >
@@ -240,9 +247,16 @@ function Index() {
               </Link>
             ))}
             <Link
+              to="/login"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="sm:hidden glass rounded-full px-5 py-2.5 text-xs font-bold inline-flex items-center gap-2 hover:bg-white/10 hover:border-white/20 transition text-foreground border border-white/10 shadow-lg mt-4"
+            >
+              <User className="size-3.5" /> Client Login
+            </Link>
+            <Link
               to="/admin"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="sm:hidden glass rounded-full px-5 py-2.5 text-xs font-bold inline-flex items-center gap-2 hover:bg-white/10 hover:border-white/20 transition text-sky border border-sky/20 shadow-lg mt-4"
+              className="sm:hidden glass rounded-full px-5 py-2.5 text-xs font-bold inline-flex items-center gap-2 hover:bg-white/10 hover:border-white/20 transition text-sky border border-sky/20 shadow-lg mt-2"
             >
               <Settings className="size-3.5" /> Admin Console
             </Link>
@@ -278,7 +292,7 @@ function Index() {
             <ScrollReveal animation="fade-up" delay={450}>
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
-                  to="/admin"
+                  to="/apply"
                   className="btn-premium rounded-full px-8 py-4 text-xs font-bold inline-flex items-center gap-2 shadow-xl hover:scale-105 transition-transform"
                 >
                   Apply for Verified Portfolio <ArrowUpRight className="size-4" />

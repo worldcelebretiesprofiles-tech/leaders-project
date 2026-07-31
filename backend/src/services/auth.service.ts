@@ -27,4 +27,11 @@ export class AuthService {
 
     return { token };
   }
+  static async getMe(authUserId: string) {
+    const user = await AuthRepository.getAppUserByAuthId(authUserId);
+    if (!user) {
+      throw new AppError("User profile not found in application database", 404);
+    }
+    return user;
+  }
 }

@@ -55,13 +55,23 @@ import {
   Languages,
   Clock,
   Menu,
+  Bell,
+  TrendingUp,
+  Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import { DynamicIcon, POPULAR_LEADER_ICONS } from "../components/DynamicIcon";
+import { AnalyticsDashboard } from "../components/admin/AnalyticsDashboard";
+import { NotificationCenter } from "../components/admin/NotificationCenter";
+import { LeaderDashboard } from "../components/admin/LeaderDashboard";
+import { AdminDirectory } from "../components/admin/AdminDirectory";
+import { ApplicationReview } from "../components/admin/ApplicationReview";
+import { PortfolioReview } from "../components/admin/PortfolioReview";
 import { FamilyDetailsEditor } from "../components/FamilyDetailsEditor";
+import { supabase } from "../lib/supabase";
 
 const adminSearchSchema = z.object({
-  mode: z.enum(["list", "edit", "expertise-edit", "family-edit"]).catch("list"),
+  mode: z.enum(["list", "edit", "expertise-edit", "family-edit", "dashboard"]).catch("list"),
   profileId: z.number().optional(),
   section: z.string().catch("general"),
 });
@@ -163,6 +173,7 @@ const defaultProfileTemplate = {
 };
 
 type ActiveSubSection =
+  | "dashboard"
   | "general"
   | "roles"
   | "stats"
@@ -179,6 +190,7 @@ type ActiveSubSection =
   | "recent"
   | "inspirations"
   | "connect"
+  | "family"
   | "csvImport";
 
 // Standalone SectionArrayEditor Component for Certificates, Initiatives, News, and Recent Activities
@@ -877,10 +889,12 @@ function InitiativesEditor({
 }
 
 function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
+  const [authMethod, setAuthMethod] = useState<"supabase" | "legacy">("supabase");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLegacySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) {
       toast.error("Please enter the administrator password");
@@ -891,7 +905,7 @@ function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
       const data = await loginAdmin(password);
       if (data.token) {
         onLogin(data.token);
-        toast.success("Welcome back, Administrator!");
+        toast.success("Welcome back, Administrator (Legacy Fallback)!");
       } else {
         toast.error("Invalid response from authentication server");
       }
@@ -902,61 +916,183 @@ function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
     }
   };
 
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center relative p-6 bg-midnight overflow-hidden">
-      {/* Background decoration blobs */}
-      <div className="blob bg-[#0070c0] w-[500px] h-[500px] -top-32 -right-32 opacity-15" />
-      <div className="blob bg-[#b38f36] w-[600px] h-[600px] -bottom-32 -left-32 opacity-10" />
+  const handleSupabaseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast.error("Please enter both email and password");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
 
-      <div className="w-full max-w-md glass-strong rounded-3xl p-8 md:p-10 border-white/10 shadow-2xl relative z-10 animate-fade-in">
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="size-16 rounded-3xl btn-premium grid place-items-center mb-4 shadow-lg shadow-sky/20">
-            <Globe2 className="size-8 text-white" />
+      const sessionToken = data.session?.access_token;
+      if (!sessionToken) {
+        throw new Error("No session created");
+      }
+
+      // Fetch profile to verify if they are admin
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "/api/v1"}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${sessionToken}`,
+        },
+      });
+
+      if (!res.ok) {
+        await supabase.auth.signOut();
+        throw new Error("Access Denied: Insufficient permissions.");
+      }
+
+      const me = await res.json();
+      const role = me.data?.role || me.role;
+      if (role !== "SUPER_ADMIN" && role !== "ADMIN") {
+        await supabase.auth.signOut();
+        throw new Error("Access Denied: Insufficient permissions.");
+      }
+
+      sessionStorage.setItem("admin_token", sessionToken);
+      onLogin(sessionToken);
+      toast.success("Welcome back, Administrator!");
+    } catch (err: any) {
+      toast.error(err.message || "Authentication failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center relative p-6 bg-slate-50 overflow-hidden font-sans select-text">
+      {/* Background decoration blobs */}
+      <div className="blob bg-blue-500/10 w-[500px] h-[500px] -top-32 -right-32 rounded-full absolute filter blur-3xl" />
+      <div className="blob bg-indigo-500/10 w-[600px] h-[600px] -bottom-32 -left-32 rounded-full absolute filter blur-3xl" />
+
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-8 md:p-10 shadow-xl relative z-10 animate-fade-in">
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="size-14 rounded-2xl bg-blue-600 grid place-items-center mb-4 shadow-md shadow-blue-500/20">
+            <Globe2 className="size-7 text-white" />
           </div>
-          <h2 className="font-display font-bold text-2xl text-gradient">Global Leader Sphere</h2>
-          <p className="text-sm text-foreground/60 mt-1">Authorized Administration Console</p>
+          <h2 className="font-display font-bold text-2xl text-slate-800">Global Leader Sphere</h2>
+          <p className="text-xs text-slate-400 mt-1">Authorized Administration Console</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold text-gold uppercase tracking-wider block">
-              Admin Password
-            </label>
-            <div className="relative">
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password..."
-                className="w-full bg-white/90 border border-white/15 rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:border-sky focus:ring-4 focus:ring-sky/10 outline-none text-veil transition-all shadow-inner placeholder:text-foreground/30"
-                disabled={loading}
-                autoFocus
-              />
-              <Lock className="size-5 text-foreground/40 absolute left-4 top-1/2 -translate-y-1/2" />
-            </div>
-          </div>
-
+        {/* Tab Toggle */}
+        <div className="flex bg-slate-100 p-1 rounded-xl mb-6 border border-slate-200/50">
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full btn-premium rounded-2xl py-3.5 text-sm font-bold flex items-center justify-center gap-2 hover:bg-sky-dark active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+            type="button"
+            onClick={() => setAuthMethod("supabase")}
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+              authMethod === "supabase" ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-700"
+            }`}
           >
-            {loading ? (
-              <>
-                <Loader2 className="size-4 animate-spin" /> Verifying Credentials...
-              </>
-            ) : (
-              <>
-                <ShieldCheck className="size-4" /> Unlock Admin Panel
-              </>
-            )}
+            Supabase Login
           </button>
-        </form>
+          <button
+            type="button"
+            onClick={() => setAuthMethod("legacy")}
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+              authMethod === "legacy" ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-700"
+            }`}
+          >
+            Legacy Fallback
+          </button>
+        </div>
 
-        <div className="mt-8 text-center">
+        {authMethod === "supabase" ? (
+          <form onSubmit={handleSupabaseSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                Email Address
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@admin.com"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition-all text-slate-800"
+                  disabled={loading}
+                  autoFocus
+                />
+                <Mail className="size-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition-all text-slate-800"
+                  disabled={loading}
+                />
+                <Lock className="size-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" /> Verifying...
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="size-4" /> Sign In (Supabase)
+                </>
+              )}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleLegacySubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                Admin Password
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition-all text-slate-800"
+                  disabled={loading}
+                  autoFocus
+                />
+                <Lock className="size-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-white rounded-xl py-3 text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" /> Verifying...
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="size-4" /> Unlock Admin Panel
+                </>
+              )}
+            </button>
+          </form>
+        )}
+
+        <div className="mt-6 text-center border-t border-slate-100 pt-4">
           <Link
             to="/"
-            className="text-xs text-sky font-semibold hover:text-[#005c9e] inline-flex items-center gap-1 transition"
+            className="text-xs text-blue-600 font-semibold hover:text-blue-700 inline-flex items-center gap-1 transition"
           >
             ← Return to public website
           </Link>
@@ -2605,7 +2741,7 @@ function AdminDashboard() {
   const search = Route.useSearch();
   const mode = search.mode;
   const profileId = search.profileId;
-  const activeSection = (search.section || "general") as ActiveSubSection;
+  const activeSection = (search.section || "dashboard") as ActiveSubSection;
 
   const [token, setToken] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
@@ -2664,11 +2800,12 @@ function AdminDashboard() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setToken(null);
     sessionStorage.removeItem("admin_token");
     setProfiles([]);
     setCategoriesList([]);
+    await supabase.auth.signOut();
     toast.info("Logged out successfully");
   };
 
@@ -2685,7 +2822,7 @@ function AdminDashboard() {
       search: (prev: any) => ({
         ...prev,
         mode: newMode,
-        profileId: (newMode === "list" || newMode === "create") ? undefined : prev.profileId,
+        profileId: newMode === "list" ? undefined : prev.profileId,
       }),
     });
   };
@@ -2700,7 +2837,9 @@ function AdminDashboard() {
     });
   };
 
-  const [adminView, setAdminView] = useState<"profiles" | "categories" | "expertise">("profiles");
+  const [adminView, setAdminView] = useState<"profiles" | "categories" | "expertise" | "applications" | "portfolio-review" | "users" | "analytics" | "settings">("profiles");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [selectedCatId, setSelectedCatId] = useState<number | null>(null);
 
   // Category Inputs State
@@ -3486,214 +3625,228 @@ function AdminDashboard() {
   };
 
   return (
-    <div className="admin-console relative min-h-screen text-foreground bg-midnight overflow-hidden py-10 px-6 lg:px-12">
+    <div className="flex min-h-screen bg-[#F8FAFC] text-slate-800 font-sans select-text">
       <SEO title="Admin Dashboard | Global Leader Sphere" description="Secure admin dashboard for Global Leader Sphere" />
 
-      {/* Background decoration blobs */}
-      <div className={`blob w-[500px] h-[500px] -top-32 -right-32 opacity-10 transition-colors duration-500 ${
-        mode === "expertise-edit" ? "bg-[#10b981]" : "bg-[#0070c0]"
-      }`} />
-      <div className="blob bg-[#b38f36] w-[600px] h-[600px] bottom-[-200px] -left-32 opacity-[0.06]" />
+      {/* LEFT SIDEBAR */}
+      <aside className={`bg-slate-900 text-slate-100 flex flex-col justify-between shrink-0 transition-all duration-300 border-r border-slate-800 z-30 fixed inset-y-0 left-0 md:relative ${
+        sidebarCollapsed ? "w-20" : "w-64"
+      } ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
+        <div>
+          {/* Logo Brand Header */}
+          <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
+            <div className="flex items-center gap-2.5 overflow-hidden">
+              <div className="size-9 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+                <Globe2 className="size-5 text-white" />
+              </div>
+              {!sidebarCollapsed && (
+                <div>
+                  <h1 className="font-display font-bold text-sm tracking-tight text-white truncate">Global Leader Sphere</h1>
+                  <p className="text-[10px] text-slate-500 font-medium">System Console</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Sidebar toggle button (desktop) */}
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="hidden md:flex size-7 items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            >
+              <ChevronLeft className={`size-4 transition-transform duration-200 ${sidebarCollapsed ? "rotate-180" : ""}`} />
+            </button>
+            
+            {/* Mobile close toggle */}
+            <button
+              onClick={() => setMobileSidebarOpen(false)}
+              className="flex md:hidden size-7 items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
 
-      {/* HEADER NAVBAR */}
-      <nav className="max-w-7xl mx-auto flex items-center justify-between mb-10 z-10 relative">
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-2xl btn-premium grid place-items-center">
-            <Globe2 className="size-5 text-white" />
-          </div>
-          <div>
-            <h1 className="font-display font-bold text-xl text-sky">Global Leader Sphere</h1>
-            <p className="text-[12px] text-foreground/50">Verified Profiles Admin Console</p>
-          </div>
+          {/* Navigation Menu */}
+          <nav className="p-3 space-y-6">
+            <div>
+              {!sidebarCollapsed && <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Core Registry</p>}
+              <ul className="space-y-1">
+                {[
+                  { id: "profiles", label: "Profile Management", icon: UserCheck },
+                  { id: "expertise", label: "Professional Expertise", icon: Award },
+                  { id: "applications", label: "Applications", icon: FileText },
+                  { id: "portfolio-review", label: "Portfolio Reviews", icon: ShieldCheck }
+                ].map((item) => {
+                  const Icon = item.icon;
+                  const isActive = adminView === item.id && mode === "list";
+                  return (
+                    <li key={item.id}>
+                      <button
+                        onClick={() => {
+                          setAdminView(item.id as any);
+                          setMode("list");
+                          setMobileSidebarOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                          isActive
+                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/10"
+                            : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
+                        }`}
+                        title={item.label}
+                      >
+                        <Icon className="size-4.5 shrink-0" />
+                        {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            <div>
+              {!sidebarCollapsed && <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">System Configuration</p>}
+              <ul className="space-y-1">
+                {[
+                  { id: "categories", label: "Categories", icon: Layers },
+                  { id: "users", label: "User Accounts", icon: Users },
+                  { id: "analytics", label: "System Analytics", icon: Activity },
+                  { id: "settings", label: "Settings", icon: Settings }
+                ].map((item) => {
+                  const Icon = item.icon;
+                  const isActive = adminView === item.id && mode === "list";
+                  return (
+                    <li key={item.id}>
+                      <button
+                        onClick={() => {
+                          setAdminView(item.id as any);
+                          setMode("list");
+                          setMobileSidebarOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                          isActive
+                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/10"
+                            : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
+                        }`}
+                        title={item.label}
+                      >
+                        <Icon className="size-4.5 shrink-0" />
+                        {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </nav>
         </div>
 
-        <div className="flex items-center gap-3">
-          {mode === "edit" || mode === "expertise-edit" || mode === "family-edit" ? (
-            <button
-              onClick={() => {
-                if (confirm("Discard unsaved changes?")) {
-                  setMode("list");
-                  setSelectedProfile(null);
-                }
-              }}
-              className="glass rounded-full px-5 py-2.5 text-sm font-medium inline-flex items-center gap-1.5 hover:bg-white/10 transition"
-            >
-              <ChevronLeft className="size-4" /> Cancel
-            </button>
-          ) : (
-            <Link
-              to="/"
-              className="glass rounded-full px-5 py-2.5 text-sm font-medium inline-flex items-center gap-1.5 hover:bg-white/10 transition"
-            >
-              View Live Website <ArrowUpRight className="size-4 text-sky" />
-            </Link>
+        {/* Sidebar Footer User Details */}
+        <div className="p-3 border-t border-slate-800 flex flex-col gap-2">
+          {!sidebarCollapsed && (
+            <div className="flex items-center gap-3 px-3 py-2 bg-slate-800/40 rounded-xl border border-slate-800/50">
+              <div className="size-8 rounded-lg bg-blue-500/15 border border-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm shrink-0">
+                AD
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-slate-200 truncate">Administrator</p>
+                <p className="text-[10px] text-slate-500 truncate">admin@system.com</p>
+              </div>
+            </div>
           )}
           <button
             onClick={handleLogout}
-            className="glass rounded-full px-5 py-2.5 text-sm font-medium inline-flex items-center gap-1.5 text-red-500 hover:bg-red-50/10 transition border border-red-500/20"
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer ${
+              sidebarCollapsed ? "justify-center" : ""
+            }`}
+            title="Logout"
           >
-            <LogOut className="size-4" /> Logout
+            <LogOut className="size-4.5 shrink-0" />
+            {!sidebarCollapsed && <span>Logout</span>}
           </button>
         </div>
-      </nav>
-<main className="max-w-7xl mx-auto z-10 relative">
-        {mode === "list" ? (
-          /* ========================================================================= */
-          /* 1. DIRECTORY / PROFILE LIST VIEW & CATEGORIES MANAGER                     */
-          /* ========================================================================= */
-          <div className="glass-strong rounded-3xl p-8 border-white/10 shadow-3xl">
-            
-            {/* Tab Swticher */}
-            <div className="flex items-center gap-4 border-b border-white/5 pb-6 mb-8 flex-wrap">
-              <button
-                onClick={() => setAdminView("profiles")}
-                className={`px-5 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition inline-flex items-center gap-2 ${
-                  adminView === "profiles" || adminView === "categories"
-                    ? "bg-linear-to-r from-sapphire to-sky text-white shadow-md shadow-sky/15"
-                    : "hover:bg-[#0d2c6c]/5 text-foreground/75 border border-transparent"
-                }`}
-              >
-                <UserCheck className="size-4" /> Profile Management
-              </button>
-              <button
-                onClick={() => setAdminView("expertise")}
-                className={`px-5 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition inline-flex items-center gap-2 ${
-                  adminView === "expertise"
-                    ? "bg-linear-to-r from-sapphire to-sky text-white shadow-md shadow-sky/15"
-                    : "hover:bg-[#0d2c6c]/5 text-foreground/75 border border-transparent"
-                }`}
-              >
-                <Award className="size-4" /> Professional Expertise
-              </button>
+      </aside>
+
+      {/* MOBILE SIDEBAR OVERLAY */}
+      {mobileSidebarOpen && (
+        <div
+          onClick={() => setMobileSidebarOpen(false)}
+          className="fixed inset-0 z-20 bg-slate-900/60 backdrop-blur-xs md:hidden"
+        />
+      )}
+
+      {/* MAIN CONTENT WRAPPER */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        {/* MODERN HEADER */}
+        <header className="sticky top-0 z-20 bg-white border-b border-gray-200/80 px-6 py-4 flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="flex md:hidden size-8 items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
+            >
+              <Menu className="size-5" />
+            </button>
+            <div>
+              <h2 className="text-sm font-bold text-slate-800">Welcome back, Admin</h2>
+              <p className="text-[10px] text-slate-400 font-medium">Role: System SuperAdmin</p>
             </div>
+          </div>
 
-            {adminView === "profiles" && (
-              /* Profiles View List */
-              <>
-                <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
-                  <div>
-                    <h2 className="font-display text-2xl font-bold text-gradient">Leader Directory</h2>
-                    <p className="text-sm text-foreground/60 mt-1">
-                      Manage the verified identities running on the sphere platform.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => {
-                        setAdminView("categories");
-                        if (categoriesList.length > 0 && selectedCatId === null) {
-                          setSelectedCatId(categoriesList[0].id);
-                        }
-                      }}
-                      className="glass rounded-full px-5 py-3 font-semibold text-sm inline-flex items-center gap-2 hover:bg-white/5 transition"
-                    >
-                      <Layers className="size-4 text-sky" /> Manage Categories
-                    </button>
-                    <button
-                      onClick={handleCreateNew}
-                      className="btn-premium rounded-full px-6 py-3 font-semibold text-sm inline-flex items-center gap-2"
-                    >
-                      <Plus className="size-4" /> Create New Profile
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {profiles.map((p: any, index: number) => {
-                    const isFirst = index === 0;
-                    return (
-                      <div
-                        key={p.id}
-                        className="glass rounded-[28px] overflow-hidden p-6 hover:shadow-glow hover:-translate-y-1 transition-all duration-300 border-white/10 flex flex-col justify-between group"
-                      >
-                        <div>
-                          {/* Avatar header */}
-                          <div className="flex items-start justify-between gap-4 mb-4">
-                            <div className="size-16 rounded-2xl overflow-hidden border border-white/15 bg-white/5 shadow-inner">
-                              <img
-                                src={p.portrait}
-                                alt={p.name}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <div className="flex items-center gap-1.5 opacity-80">
-                              <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-md">
-                                Verified
-                              </span>
-                            </div>
-                          </div>
-
-                          <h3 className="font-display font-bold text-lg text-foreground group-hover:text-sky transition duration-200 truncate">
-                            {p.name}
-                          </h3>
-                          <p className="text-[13px] text-gold/80 font-medium truncate mt-1">
-                            {p.title}
-                          </p>
-
-                          <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between gap-4">
-                            <div className="text-[11px] text-muted-foreground space-y-1">
-                              <div>
-                                Slug: <span className="text-sky font-mono font-bold">/{p.slug}</span>
-                              </div>
-                            </div>
-                            {origin && (
-                              <button
-                                type="button"
-                                onClick={() => setActiveQrModal({ name: p.name, url: `${origin}/leader/${p.slug}` })}
-                                className="bg-white p-1 rounded-lg shrink-0 cursor-pointer hover:scale-105 transition-transform duration-200 border border-white/10 shadow-sm"
-                                title="Enlarge verification QR"
-                              >
-                                <img
-                                  src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent(`${origin}/leader/${p.slug}`)}`}
-                                  alt="QR Code"
-                                  className="size-7 object-contain"
-                                />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Actions panel */}
-                        <div className="mt-6 pt-4 border-t border-white/5 grid grid-cols-4 gap-2">
-                          <Link
-                            to="/leader/$slug"
-                            params={{ slug: p.slug }}
-                            target="_blank"
-                            className="glass rounded-xl py-2.5 text-center text-xs font-semibold text-foreground/80 hover:text-white hover:bg-white/10 transition inline-flex items-center justify-center gap-1"
-                            title="View Live Profile"
-                          >
-                            <ArrowUpRight className="size-3.5" /> Live
-                          </Link>
-                          <button
-                            onClick={() => handleEdit(p)}
-                            className="glass rounded-xl py-2.5 text-center text-xs font-semibold text-sky bg-sky/5 hover:bg-sky/15 hover:text-sky-light transition inline-flex items-center justify-center gap-1 border border-sky/20"
-                            title="Edit Profile"
-                          >
-                            <Edit3 className="size-3.5" /> Edit
-                          </button>
-                          <button
-                            onClick={() => handleDuplicate(p)}
-                            className="glass rounded-xl py-2.5 text-center text-xs font-semibold text-foreground/80 hover:text-white hover:bg-white/10 transition inline-flex items-center justify-center gap-1"
-                            title="Duplicate Profile"
-                          >
-                            <Copy className="size-3.5" /> Copy
-                          </button>
-                          <button
-                            onClick={() => handleDelete(p.id)}
-                            disabled={isFirst && profiles.length === 1}
-                            className="glass rounded-xl py-2.5 text-center text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-950/20 disabled:opacity-30 disabled:pointer-events-none transition inline-flex items-center justify-center gap-1 border border-red-500/10"
-                            title="Delete Profile"
-                          >
-                            <Trash2 className="size-3.5" /> Del
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
+          <div className="flex items-center gap-4">
+            {/* Action buttons */}
+            {mode === "edit" || mode === "expertise-edit" || mode === "family-edit" ? (
+              <button
+                onClick={() => {
+                  if (confirm("Discard unsaved changes?")) {
+                    setMode("list");
+                    setSelectedProfile(null);
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition h-9"
+              >
+                <ChevronLeft className="size-4" /> Cancel Edit
+              </button>
+            ) : (
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition h-9"
+              >
+                View Live Website <ArrowUpRight className="size-3.5 text-blue-500" />
+              </Link>
             )}
 
+            {/* Notifications mock icon */}
+            <button className="size-9 rounded-xl border border-gray-200/80 flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition relative">
+              <Bell className="size-4" />
+              <span className="absolute top-2.5 right-2.5 size-2 bg-blue-500 rounded-full" />
+            </button>
+
+            {/* Profile Avatar */}
+            <div className="size-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xs shadow-inner">
+              A
+            </div>
+          </div>
+        </header>
+
+        {/* SCROLLABLE CONTENT BODY */}
+        <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-7xl w-full mx-auto">
+          {mode === "list" ? (
+            <div className="bg-transparent space-y-8">
+              {adminView === "profiles" && (
+                <AdminDirectory
+                  profiles={profiles}
+                  categoriesList={categoriesList}
+                  origin={origin}
+                  handleCreateNew={handleCreateNew}
+                  handleEdit={handleEdit}
+                  setAdminView={(v) => setAdminView(v as any)}
+                  setSelectedCatId={setSelectedCatId}
+                  setActiveQrModal={setActiveQrModal}
+                />
+              )}
+              {adminView === "applications" && (
+                <ApplicationReview token={token || ""} />
+              )}
+              {adminView === "portfolio-review" && (
+                <PortfolioReview currentUser={{ role: "SUPER_ADMIN" }} />
+              )}
             {adminView === "categories" && (
               /* Categories Manager View */
               <>
@@ -4025,6 +4178,120 @@ function AdminDashboard() {
                 </div>
               </>
             )}
+
+            {/* USERS VIEW */}
+            {adminView === "users" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-gray-100 pb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900 font-display">User Accounts</h2>
+                    <p className="text-sm text-slate-500 mt-1">Manage registration credentials and user access status.</p>
+                  </div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-gray-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        <th className="px-6 py-4">User</th>
+                        <th className="px-6 py-4">Role</th>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {profiles.map((p: any) => (
+                        <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="size-8 rounded-full overflow-hidden border border-gray-200 bg-slate-100 shrink-0">
+                                <img src={p.portrait} alt={p.name} className="w-full h-full object-cover" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-slate-800 text-sm">{p.name}</h4>
+                                <span className="text-xs text-slate-400">client-id: {p.owner_id || "Unlinked"}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-xs font-semibold text-slate-600">CLIENT</td>
+                          <td className="px-6 py-4">
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-50 border border-emerald-200 text-emerald-700">
+                              ACTIVE
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button
+                              onClick={() => handleEdit(p)}
+                              className="text-xs font-bold text-blue-600 hover:text-blue-700 transition"
+                            >
+                              Manage User
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ANALYTICS VIEW */}
+            {adminView === "analytics" && (
+              <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-xs">
+                <AnalyticsDashboard />
+              </div>
+            )}
+
+            {/* SETTINGS VIEW */}
+            {adminView === "settings" && (
+              <div className="space-y-8">
+                <div className="border-b border-gray-100 pb-6">
+                  <h2 className="text-2xl font-bold tracking-tight text-slate-900 font-display">System Settings</h2>
+                  <p className="text-sm text-slate-500 mt-1">Configure global parameters and third-party integrations.</p>
+                </div>
+                
+                <div className="grid md:grid-cols-3 gap-8">
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-slate-800 text-sm">General Settings</h3>
+                    <p className="text-xs text-slate-400">Core parameters of the verified directory system.</p>
+                  </div>
+                  <div className="md:col-span-2 bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Platform Name</label>
+                      <input type="text" defaultValue="Global Leader Sphere" className="w-full bg-slate-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none text-slate-800 focus:bg-white focus:border-blue-500 transition-all" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Admin Email Contact</label>
+                      <input type="email" defaultValue="admin@globalleadersphere.com" className="w-full bg-slate-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none text-slate-800 focus:bg-white focus:border-blue-500 transition-all" />
+                    </div>
+                  </div>
+                </div>
+
+                <hr className="border-gray-200/80" />
+
+                <div className="grid md:grid-cols-3 gap-8">
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-slate-800 text-sm">Integrations</h3>
+                    <p className="text-xs text-slate-400">Manage credentials for Cloudinary, Supabase, and mailing APIs.</p>
+                  </div>
+                  <div className="md:col-span-2 bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Supabase Project URL</label>
+                      <input type="text" value="https://global-leader-sphere.supabase.co" disabled className="w-full bg-slate-100 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none text-slate-500 cursor-not-allowed" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Cloudinary Assets Bucket</label>
+                      <input type="text" value="global-leader-sphere" disabled className="w-full bg-slate-100 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none text-slate-500 cursor-not-allowed" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4 border-t border-gray-200">
+                  <button onClick={() => toast.success("Settings saved successfully!")} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition shadow-md shadow-blue-500/10">
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : !selectedProfile ? (
           <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 glass-strong rounded-3xl p-12 border-white/10">
@@ -4113,6 +4380,7 @@ function AdminDashboard() {
               </div>
 
               {[
+                { id: "dashboard", label: "Dashboard Overview", icon: Activity },
                 { id: "general", label: "General & Hero", icon: User },
                 { id: "csvImport", label: "CSV Bulk Import", icon: FileText },
                 { id: "roles", label: "Key Badges / Roles", icon: UserCheck },
@@ -4234,6 +4502,9 @@ function AdminDashboard() {
                 {/* ========================================================================= */}
                 {/* SUBSECTION 1: GENERAL HERO                                               */}
                 {/* ========================================================================= */}
+                {activeSection === "dashboard" && (
+                  <LeaderDashboard profile={selectedProfile} />
+                )}
                 {activeSection === "general" && (
                   <div className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
@@ -6066,6 +6337,7 @@ function AdminDashboard() {
       </div>
     )}
       </main>
+    </div>
 
       {activeQrModal && (
         <div 

@@ -3,6 +3,13 @@ import * as m001 from "./migrations/001_create_schema";
 import * as m002 from "./migrations/002_add_admin_auth";
 import * as m003 from "./migrations/003_create_professional_expertise";
 import * as m004 from "./migrations/004_update_professional_expertise_spec";
+import * as m005 from "./migrations/005_create_family_details";
+import * as m006 from "./migrations/006_create_app_users";
+import * as m007 from "./migrations/007_create_applications";
+import * as m008 from "./migrations/008_link_profiles_to_users";
+import * as m009 from "./migrations/009_create_profile_versions";
+import * as m010 from "./migrations/010_add_audit_and_notifications";
+import * as m011 from "./migrations/011_add_analytics";
 
 interface Migration {
   name: string;
@@ -14,7 +21,14 @@ const migrations: Migration[] = [
   { name: "001_create_schema", up: m001.up, down: m001.down },
   { name: "002_add_admin_auth", up: m002.up, down: m002.down },
   { name: "003_create_professional_expertise", up: m003.up, down: m003.down },
-  { name: "004_update_professional_expertise_spec", up: m004.up, down: m004.down }
+  { name: "004_update_professional_expertise_spec", up: m004.up, down: m004.down },
+  { name: "005_create_family_details", up: m005.up, down: m005.down },
+  { name: "006_create_app_users", up: m006.up, down: m006.down },
+  { name: "007_create_applications", up: m007.up, down: m007.down },
+  { name: "008_link_profiles_to_users", up: m008.up, down: m008.down },
+  { name: "009_create_profile_versions", up: m009.up, down: m009.down },
+  { name: "010_add_audit_and_notifications", up: m010.up, down: m010.down },
+  { name: "011_add_analytics", up: m011.up, down: m011.down }
 ];
 
 async function ensureMigrationTable() {

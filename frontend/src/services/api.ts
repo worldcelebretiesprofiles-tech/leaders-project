@@ -1,6 +1,10 @@
 export const getBaseUrl = () => {
-  const url = (import.meta.env.VITE_API_URL as string) || "";
-  return url.replace(/\/+$/, "");
+  let url = (import.meta.env.VITE_API_URL as string) || "";
+  url = url.replace(/\/+$/, "");
+  if (url.endsWith("/api/v1")) {
+    url = url.substring(0, url.length - 7);
+  }
+  return url;
 };
 
 export const resolveImageUrl = (imgObj: any) => {
@@ -12,7 +16,7 @@ export const resolveImageUrl = (imgObj: any) => {
   return url;
 };
 
-const getHeaders = (extraHeaders: Record<string, string> = {}) => {
+export const getHeaders = (extraHeaders: Record<string, string> = {}) => {
   const headers: Record<string, string> = { ...extraHeaders };
   if (typeof window !== "undefined") {
     const token = sessionStorage.getItem("admin_token");
@@ -215,3 +219,67 @@ export async function saveFamilyDetails(profileId: number, familyData: any) {
   }
   return res.json();
 }
+
+export async function getMyNotifications() {
+  const res = await fetch(`${getBaseUrl()}/api/v1/notifications/me`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch notifications");
+  return res.json();
+}
+
+export async function markNotificationAsRead(id: number) {
+  const res = await fetch(`${getBaseUrl()}/api/v1/notifications/me/${id}/read`, {
+    method: "POST",
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to mark notification as read");
+  return res.json();
+}
+
+export async function markAllNotificationsAsRead() {
+  const res = await fetch(`${getBaseUrl()}/api/v1/notifications/me/read-all`, {
+    method: "POST",
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to mark all notifications as read");
+  return res.json();
+}
+
+export async function getMeCompletion() {
+  const res = await fetch(`${getBaseUrl()}/api/v1/profiles/me/completion`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch profile completion");
+  return res.json();
+}
+
+
+export async function submitApplication(data: any) {
+  const res = await fetch(`${getBaseUrl()}/api/v1/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to submit application");
+  return res.json();
+}
+
+export async function getDashboardAnalytics() {
+  const res = await fetch(`${getBaseUrl()}/api/v1/analytics`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch dashboard analytics");
+  const data = await res.json();
+  return data.data || data;
+}
+
+export async function rollbackVersion(profileId: number, versionId: number) {
+  const res = await fetch(`${getBaseUrl()}/api/v1/profiles/${profileId}/versions/${versionId}/rollback`, {
+    method: "POST",
+    headers: getHeaders({ "Content-Type": "application/json" }),
+  });
+  if (!res.ok) throw new Error("Failed to rollback version");
+  return res.json();
+}
+
