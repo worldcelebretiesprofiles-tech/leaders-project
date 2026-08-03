@@ -15,6 +15,7 @@ import {
   getProfessionalExpertise,
   saveProfessionalExpertise,
   resolveImageUrl,
+  getBaseUrl,
 } from "../services/api";
 import {
   ShieldCheck,
@@ -909,7 +910,7 @@ function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
       }
 
       // Fetch profile to verify if they are admin
-      const res = await fetch(`${import.meta.env.VITE_API_URL || "/api/v1"}/auth/me`, {
+      const res = await fetch(`${getBaseUrl()}/api/v1/auth/me`, {
         headers: {
           Authorization: `Bearer ${sessionToken}`,
         },
