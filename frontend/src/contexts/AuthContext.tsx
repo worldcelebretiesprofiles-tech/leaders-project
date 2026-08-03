@@ -39,7 +39,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
+        let baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+        if (!baseUrl.endsWith("/api/v1")) {
+          baseUrl = `${baseUrl}/api/v1`;
+        }
+        const res = await fetch(`${baseUrl}/auth/me`, {
           headers: {
             Authorization: `Bearer ${currentSession.access_token}`,
           },
