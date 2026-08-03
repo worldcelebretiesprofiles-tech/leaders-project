@@ -42,12 +42,25 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
     let appUser;
     
     if (result.rows.length === 0) {
-      // Auto-provision user on first valid login (User Sync)
-      const insertResult = await query(
-        "INSERT INTO app_users (auth_user_id, email, role, status) VALUES ($1, $2, 'CLIENT', 'ACTIVE') RETURNING id, auth_user_id, email, role, status",
-        [user.id, user.email]
-      );
-      appUser = insertResult.rows[0];
+      // Check if a user with this email already exists (e.g. from seed or other login method)
+      const emailResult = await query("SELECT id, auth_user_id, email, role, status FROM app_users WHERE email = $1 AND deleted_at IS NULL", [user.email]);
+      
+      if (emailResult.rows.length > 0) {
+        // Self-heal: update the auth_user_id to match the verified Supabase ID
+        await query("UPDATE app_users SET auth_user_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2", [user.id, emailResult.rows[0].id]);
+        appUser = {
+          ...emailResult.rows[0],
+          auth_user_id: user.id
+        };
+        console.log(`Self-healed: Updated auth_user_id for email ${user.email} to match active Supabase ID ${user.id}`);
+      } else {
+        // Auto-provision user on first valid login (User Sync)
+        const insertResult = await query(
+          "INSERT INTO app_users (auth_user_id, email, role, status) VALUES ($1, $2, 'CLIENT', 'ACTIVE') RETURNING id, auth_user_id, email, role, status",
+          [user.id, user.email]
+        );
+        appUser = insertResult.rows[0];
+      }
     } else {
       appUser = result.rows[0];
     }

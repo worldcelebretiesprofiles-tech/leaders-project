@@ -12,9 +12,9 @@ async function main() {
     const tables = tableRes.rows.map(x => x.table_name);
     console.log('Tables:', tables);
 
-    if (tables.includes('profiles')) {
-      const profileCountRes = await pool.query("SELECT count(*) FROM profiles");
-      console.log('Profile count:', profileCountRes.rows[0].count);
+    if (tables.includes('app_users')) {
+      const usersRes = await pool.query("SELECT id, auth_user_id, email, role, status FROM app_users");
+      console.log('App Users in DB:', usersRes.rows);
     }
   } catch (err) {
     console.error(err);
