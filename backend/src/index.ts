@@ -52,8 +52,9 @@ app.use(
       
       const cleanOrigin = origin.trim().replace(/\/$/, "");
       const isAllowed = allowedOrigins.some(allowed => cleanOrigin === allowed.trim().replace(/\/$/, ""));
+      const isVercelOrigin = cleanOrigin.startsWith("https://celebreties-profile") && cleanOrigin.endsWith(".vercel.app");
       
-      if (isAllowed || allowedOrigins.includes("*")) {
+      if (isAllowed || isVercelOrigin || allowedOrigins.includes("*")) {
         callback(null, true);
       } else {
         console.warn(`CORS blocked request from origin: ${origin}`);
