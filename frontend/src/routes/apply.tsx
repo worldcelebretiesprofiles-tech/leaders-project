@@ -14,8 +14,10 @@ const applySchema = z.object({
   first_name: z.string().min(2, "First name is required"),
   last_name: z.string().min(2, "Last name is required"),
   email: z.string().email("Invalid email address"),
-  professional_links: z.string().min(5, "Please provide at least one professional link"),
-  reason: z.string().min(20, "Please provide a brief reason for applying"),
+  company: z.string().min(2, "Company name is required"),
+  job_title: z.string().min(2, "Job title is required"),
+  linkedin_url: z.string().min(5, "LinkedIn URL is required"),
+  motivation: z.string().min(20, "Please provide a brief reason for applying"),
 });
 
 type ApplyForm = z.infer<typeof applySchema>;
@@ -112,25 +114,46 @@ function ApplyPage() {
                 {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email.message}</p>}
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2">Company</label>
+                  <input
+                    {...register("company")}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-sky/50 outline-none text-white transition-colors placeholder:text-white/30"
+                    placeholder="Acme Corp"
+                  />
+                  {errors.company && <p className="mt-1 text-xs text-red-400">{errors.company.message}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2">Job Title</label>
+                  <input
+                    {...register("job_title")}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-sky/50 outline-none text-white transition-colors placeholder:text-white/30"
+                    placeholder="CEO"
+                  />
+                  {errors.job_title && <p className="mt-1 text-xs text-red-400">{errors.job_title.message}</p>}
+                </div>
+              </div>
+
               <div>
-                <label className="block text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2">Professional Links (LinkedIn, Website)</label>
+                <label className="block text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2">LinkedIn URL</label>
                 <input
-                  {...register("professional_links")}
+                  {...register("linkedin_url")}
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-sky/50 outline-none text-white transition-colors placeholder:text-white/30"
                   placeholder="https://linkedin.com/in/janedoe"
                 />
-                {errors.professional_links && <p className="mt-1 text-xs text-red-400">{errors.professional_links.message}</p>}
+                {errors.linkedin_url && <p className="mt-1 text-xs text-red-400">{errors.linkedin_url.message}</p>}
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2">Reason for Applying</label>
                 <textarea
-                  {...register("reason")}
+                  {...register("motivation")}
                   rows={4}
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-sky/50 outline-none text-white transition-colors placeholder:text-white/30"
                   placeholder="Briefly describe your role and why you want to join the directory..."
                 />
-                {errors.reason && <p className="mt-1 text-xs text-red-400">{errors.reason.message}</p>}
+                {errors.motivation && <p className="mt-1 text-xs text-red-400">{errors.motivation.message}</p>}
               </div>
 
               <div className="pt-2">

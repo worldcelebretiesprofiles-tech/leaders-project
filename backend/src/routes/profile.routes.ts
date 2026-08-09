@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { ProfileController } from "../controllers/profile.controller";
-import { authMiddleware } from "../middleware/auth";
+import { authMiddleware, optionalAuthMiddleware } from "../middleware/auth";
 
 const router = Router();
 
 // Profile basic CRUD
-router.get("/", ProfileController.getProfiles);
+router.get("/", optionalAuthMiddleware, ProfileController.getProfiles);
 router.post("/", authMiddleware, ProfileController.saveProfile);
 
 // Me routes for dashboard
@@ -14,7 +14,7 @@ router.get("/me/completion", authMiddleware, ProfileController.getMeCompletion);
 router.patch("/me", authMiddleware, ProfileController.patchMe);
 
 // This must come before /:id routes so "slug" doesn't get treated as an ID
-router.get("/:slug", ProfileController.getProfileBySlug);
+router.get("/:slug", optionalAuthMiddleware, ProfileController.getProfileBySlug);
 
 router.delete("/:id", authMiddleware, ProfileController.deleteProfile);
 

@@ -31,12 +31,13 @@ export class ApplicationRepository {
 
   static async updateApplicationStatus(id: number, status: string, adminNotes?: string) {
     const res = await query(
-      `UPDATE applications 
-       SET status = $1, admin_notes = COALESCE($2, admin_notes), updated_at = CURRENT_TIMESTAMP
-       WHERE id = $3
-       RETURNING *`,
-      [status, adminNotes || null, id]
+      "UPDATE applications SET status = $1, admin_notes = $2, updated_at = NOW() WHERE id = $3 RETURNING *",
+      [status, adminNotes, id]
     );
     return res.rows[0];
+  }
+
+  static async deleteApplication(id: number) {
+    await query("DELETE FROM applications WHERE id = $1", [id]);
   }
 }

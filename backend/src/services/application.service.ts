@@ -15,9 +15,14 @@ export class ApplicationService {
       throw new AppError("First name, last name, and email are required.", 400);
     }
     
-    // In a real app, you would check if email already exists in applications or app_users
-    
-    return await ApplicationRepository.createApplication(data);
+    try {
+      return await ApplicationRepository.createApplication(data);
+    } catch (err: any) {
+      if (err.code === '23505' && err.constraint === 'applications_email_key') {
+        throw new AppError("An application with this email address has already been submitted.", 400);
+      }
+      throw err;
+    }
   }
 
   static async listApplications(status?: string) {
@@ -70,5 +75,18 @@ export class ApplicationService {
     }
 
     return updatedApp;
+  }
+
+  static async deleteApplication(id: number) {
+    const app = await ApplicationRepository.getApplicationById(id);
+    if (!app) throw new AppError("Application not found", 404);
+    
+    // We only allow deleting applications from the DB to clean up rejected or pending applications
+    // If it's already APPROVED, deleting it would leave orphaned users/profiles.
+    if (app.status === 'APPROVED') {
+      throw new AppError("Cannot delete an application that has already been approved. Please delete the user's profile instead.", 400);
+    }
+
+    await ApplicationRepository.deleteApplication(id);
   }
 }

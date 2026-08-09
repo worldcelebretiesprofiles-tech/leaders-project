@@ -88,3 +88,39 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
     return res.status(500).json({ error: "Internal Server Error during authentication" });
   }
 }
+
+export async function optionalAuthMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return next();
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) {
+      return next();
+    }
+
+    const result = await query("SELECT id, auth_user_id, email, role, status FROM app_users WHERE auth_user_id = $1 AND deleted_at IS NULL", [user.id]);
+    
+    if (result.rows.length > 0) {
+      const appUser = result.rows[0];
+      if (appUser.status !== 'SUSPENDED' && appUser.status !== 'REJECTED') {
+        const isAdmin = appUser.role === 'SUPER_ADMIN' || appUser.role === 'ADMIN';
+        req.user = {
+          id: appUser.id,
+          auth_user_id: appUser.auth_user_id,
+          email: appUser.email,
+          role: appUser.role,
+          status: appUser.status,
+          isAdmin,
+        };
+      }
+    }
+  } catch (err) {
+    // Fail silently for optional auth
+  }
+  next();
+}

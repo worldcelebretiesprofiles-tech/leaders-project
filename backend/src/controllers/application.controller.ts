@@ -42,4 +42,14 @@ export class ApplicationController {
       next(err);
     }
   }
+
+  static async deleteApplication(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = parseInt(req.params.id, 10);
+      await ApplicationService.deleteApplication(id);
+      sendSuccess(res, { message: "Application deleted successfully" });
+    } catch (err) {
+      next(err);
+    }
+  }
 }

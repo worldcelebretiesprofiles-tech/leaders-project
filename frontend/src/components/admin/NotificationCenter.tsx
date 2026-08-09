@@ -69,29 +69,29 @@ export function NotificationCenter() {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="relative size-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition"
+        className="relative size-10 rounded-full flex items-center justify-center hover:bg-zinc-800 border border-zinc-800 transition bg-zinc-900"
       >
-        <Bell className="size-5 text-foreground/80" />
+        <Bell className="size-5 text-zinc-400" />
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 size-4 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center border border-midnight">
+          <span className="absolute top-0 right-0 size-4 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center border border-zinc-950">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 glass-panel rounded-xl shadow-2xl border border-white/10 overflow-hidden z-50 flex flex-col max-h-[500px]">
-          <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
-            <h3 className="font-semibold text-foreground flex items-center gap-2">
+        <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-zinc-900 rounded-xl shadow-2xl border border-zinc-800 overflow-hidden z-[100] flex flex-col max-h-[500px]">
+          <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/50">
+            <h3 className="font-semibold text-zinc-200 flex items-center gap-2">
               Notifications
-              <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs font-medium text-sky">
+              <span className="px-2 py-0.5 rounded-full bg-zinc-800 text-xs font-medium text-blue-400">
                 {unreadCount} New
               </span>
             </h3>
             {unreadCount > 0 && (
               <button 
                 onClick={handleMarkAllAsRead}
-                className="text-xs text-foreground/60 hover:text-sky transition flex items-center gap-1"
+                className="text-xs text-zinc-400 hover:text-blue-400 transition flex items-center gap-1"
               >
                 <Check className="size-3" /> Mark all read
               </button>
@@ -100,13 +100,13 @@ export function NotificationCenter() {
 
           <div className="overflow-y-auto flex-1 p-2">
             {isLoading && notifications.length === 0 ? (
-              <div className="p-8 text-center text-foreground/40">Loading...</div>
+              <div className="p-8 text-center text-zinc-500">Loading...</div>
             ) : notifications.length === 0 ? (
               <div className="p-8 text-center flex flex-col items-center justify-center">
-                <div className="size-12 rounded-full bg-white/5 flex items-center justify-center mb-3">
-                  <Bell className="size-6 text-foreground/20" />
+                <div className="size-12 rounded-full bg-zinc-800/50 flex items-center justify-center mb-3 border border-zinc-800">
+                  <Bell className="size-6 text-zinc-600" />
                 </div>
-                <p className="text-foreground/60 text-sm">You're all caught up!</p>
+                <p className="text-zinc-500 text-sm">You're all caught up!</p>
               </div>
             ) : (
               <div className="flex flex-col gap-1">
@@ -114,22 +114,22 @@ export function NotificationCenter() {
                   <div 
                     key={notif.id} 
                     className={`p-3 rounded-lg transition-colors group relative ${
-                      !notif.read_at ? 'bg-sky/10 border border-sky/20' : 'hover:bg-white/5 border border-transparent'
+                      !notif.read_at ? 'bg-blue-500/10 border border-blue-500/20' : 'hover:bg-zinc-800 border border-transparent'
                     }`}
                   >
                     {!notif.read_at && (
-                      <div className="absolute top-4 left-3 size-2 rounded-full bg-sky" />
+                      <div className="absolute top-4 left-3 size-2 rounded-full bg-blue-500" />
                     )}
                     <div className={`pl-${!notif.read_at ? '5' : '1'} pr-6`}>
                       <div className="flex items-start justify-between gap-2 mb-1">
-                        <h4 className={`text-sm font-medium ${!notif.read_at ? 'text-foreground' : 'text-foreground/80'}`}>
+                        <h4 className={`text-sm font-medium ${!notif.read_at ? 'text-zinc-200' : 'text-zinc-400'}`}>
                           {notif.title}
                         </h4>
-                        <span className="text-[10px] text-foreground/40 whitespace-nowrap">
+                        <span className="text-[10px] text-zinc-500 whitespace-nowrap">
                           {new Date(notif.created_at).toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="text-xs text-foreground/60 leading-relaxed line-clamp-2">
+                      <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2">
                         {notif.message}
                       </p>
                       
@@ -137,7 +137,7 @@ export function NotificationCenter() {
                         {notif.link && (
                           <a 
                             href={notif.link}
-                            className="text-[11px] font-medium text-sky hover:text-sky-light inline-flex items-center gap-1"
+                            className="text-[11px] font-medium text-blue-400 hover:text-blue-300 inline-flex items-center gap-1"
                           >
                             View details <ExternalLink className="size-3" />
                           </a>
@@ -145,7 +145,7 @@ export function NotificationCenter() {
                         {!notif.read_at && (
                           <button 
                             onClick={() => handleMarkAsRead(notif.id)}
-                            className="text-[11px] font-medium text-foreground/50 hover:text-foreground inline-flex items-center gap-1"
+                            className="text-[11px] font-medium text-zinc-500 hover:text-zinc-300 inline-flex items-center gap-1"
                           >
                             <Check className="size-3" /> Mark read
                           </button>

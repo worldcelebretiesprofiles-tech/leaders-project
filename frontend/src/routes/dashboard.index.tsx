@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "../contexts/AuthContext";
 import { AlertCircle, CheckCircle2, Clock } from "lucide-react";
 
@@ -45,18 +45,21 @@ function DashboardIndex() {
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm flex flex-col justify-center items-center text-center">
-           <div className="w-16 h-16 bg-blue-900/20 rounded-full flex items-center justify-center mb-4 border border-blue-900/50">
+        <Link
+          to="/dashboard/portfolio"
+          className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm flex flex-col justify-center items-center text-center hover:bg-zinc-800/50 transition-colors group cursor-pointer"
+        >
+           <div className="w-16 h-16 bg-blue-900/20 rounded-full flex items-center justify-center mb-4 border border-blue-900/50 group-hover:scale-110 transition-transform">
              <span className="text-blue-400 font-bold text-xl">PB</span>
            </div>
            <h3 className="text-lg font-medium text-zinc-200 mb-2">Portfolio Builder</h3>
            <p className="text-sm text-zinc-400 mb-4">
-             The self-service portfolio editor is currently in development.
+             Access the self-service portfolio editor to manage your profile contents.
            </p>
-           <span className="inline-flex items-center rounded-full bg-blue-900/30 px-2.5 py-0.5 text-xs font-semibold text-blue-400 border border-blue-800/50">
-             Coming Soon
+           <span className="inline-flex items-center rounded-full bg-blue-600 px-3 py-1 text-xs font-bold text-white hover:bg-blue-500 transition-colors">
+             Open Builder
            </span>
-        </div>
+        </Link>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import { setClientToken, getBaseUrl } from "../services/api";
 
 interface AppUserProfile {
   id: string;
@@ -39,11 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
-        let baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
-        if (!baseUrl.endsWith("/api/v1")) {
-          baseUrl = `${baseUrl}/api/v1`;
-        }
-        const res = await fetch(`${baseUrl}/auth/me`, {
+        const res = await fetch(`${getBaseUrl()}/auth/me`, {
           headers: {
             Authorization: `Bearer ${currentSession.access_token}`,
           },
@@ -69,6 +66,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
+        if (session?.access_token) {
+          sessionStorage.setItem("client_token", session.access_token);
+          setClientToken(session.access_token);
+        } else {
+          sessionStorage.removeItem("client_token");
+          setClientToken(null);
+        }
         fetchProfile(session);
       }
     });
@@ -79,6 +83,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(true);
         setSession(newSession);
         setUser(newSession?.user ?? null);
+        if (newSession?.access_token) {
+          sessionStorage.setItem("client_token", newSession.access_token);
+          setClientToken(newSession.access_token);
+        } else {
+          sessionStorage.removeItem("client_token");
+          setClientToken(null);
+        }
         fetchProfile(newSession);
       }
     });

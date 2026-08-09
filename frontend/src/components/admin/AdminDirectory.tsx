@@ -16,7 +16,8 @@ import {
   Calendar,
   Sparkles,
   TrendingUp,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Trash2
 } from "lucide-react";
 
 interface AdminDirectoryProps {
@@ -29,6 +30,7 @@ interface AdminDirectoryProps {
   setSelectedCatId: (id: number | null) => void;
   setActiveQrModal: (modal: any) => void;
   isLoading?: boolean;
+  handleDelete?: (id: number) => void;
 }
 
 export function AdminDirectory({
@@ -40,7 +42,8 @@ export function AdminDirectory({
   setAdminView,
   setSelectedCatId,
   setActiveQrModal,
-  isLoading = false
+  isLoading = false,
+  handleDelete
 }: AdminDirectoryProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -482,6 +485,20 @@ export function AdminDirectory({
                           >
                             Edit
                           </button>
+                          
+                          {handleDelete && (
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete ${p.name}? This action cannot be undone.`)) {
+                                  handleDelete(p.id);
+                                }
+                              }}
+                              className="p-1.5 rounded-lg border border-red-200 bg-white text-red-500 hover:bg-red-50 transition-colors shrink-0"
+                              title="Delete Portfolio"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

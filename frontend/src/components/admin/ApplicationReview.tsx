@@ -27,19 +27,21 @@ export function ApplicationReview({ token }: ApplicationReviewProps) {
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [notes, setNotes] = useState("");
+  const [activeTab, setActiveTab] = useState<"SUBMITTED" | "APPROVED" | "REJECTED">("SUBMITTED");
 
   useEffect(() => {
     fetchApplications();
-  }, []);
+  }, [activeTab]);
 
   const fetchApplications = async () => {
     try {
+      setLoading(true);
       const headers = getHeaders();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const res = await fetch(`${getBaseUrl()}/api/v1/applications?status=SUBMITTED`, {
+      const res = await fetch(`${getBaseUrl()}/applications?status=${activeTab}`, {
         headers,
       });
       if (!res.ok) throw new Error("Failed to fetch applications");
@@ -62,7 +64,7 @@ export function ApplicationReview({ token }: ApplicationReviewProps) {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const res = await fetch(`${getBaseUrl()}/api/v1/applications/${id}/status`, {
+      const res = await fetch(`${getBaseUrl()}/applications/${id}/status`, {
         method: "PUT",
         headers,
         body: JSON.stringify({ status, adminNotes: notes }),
@@ -80,23 +82,67 @@ export function ApplicationReview({ token }: ApplicationReviewProps) {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-foreground/50">Loading applications...</div>;
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Are you sure you want to completely delete this application? This cannot be undone.")) return;
+    
+    setActionLoading(true);
+    try {
+      const headers = getHeaders();
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(`${getBaseUrl()}/applications/${id}`, {
+        method: "DELETE",
+        headers,
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to delete application");
+      }
+      setSelectedApp(null);
+      await fetchApplications();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  if (loading && applications.length === 0) return <div className="p-8 text-center text-foreground/50">Loading applications...</div>;
   if (error) return <div className="p-8 text-center text-red-400"><AlertCircle className="inline mr-2" /> {error}</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-          <FileText className="text-sky" /> Pending Applications
+          <FileText className="text-sky" /> Applications
         </h2>
-        <span className="bg-sky/20 text-sky px-3 py-1 rounded-full text-xs font-bold">
-          {applications.length} Pending
-        </span>
+        <div className="flex bg-midnight rounded-xl p-1 border border-white/5">
+          <button 
+            onClick={() => setActiveTab('SUBMITTED')}
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === 'SUBMITTED' ? 'bg-sky text-white' : 'text-foreground/50 hover:text-foreground'}`}
+          >
+            Pending
+          </button>
+          <button 
+            onClick={() => setActiveTab('APPROVED')}
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === 'APPROVED' ? 'bg-emerald-500 text-white' : 'text-foreground/50 hover:text-foreground'}`}
+          >
+            Approved
+          </button>
+          <button 
+            onClick={() => setActiveTab('REJECTED')}
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === 'REJECTED' ? 'bg-red-500 text-white' : 'text-foreground/50 hover:text-foreground'}`}
+          >
+            Rejected
+          </button>
+        </div>
       </div>
 
       {applications.length === 0 ? (
         <div className="glass rounded-2xl p-12 text-center text-foreground/50">
-          No pending applications at this time.
+          No {activeTab.toLowerCase()} applications at this time.
         </div>
       ) : (
         <div className="glass rounded-3xl overflow-hidden border border-foreground/10">
@@ -190,22 +236,49 @@ export function ApplicationReview({ token }: ApplicationReviewProps) {
               </div>
             </div>
 
-            <div className="p-6 border-t border-foreground/10 bg-foreground/5 flex gap-3 justify-end">
-              <button
-                onClick={() => handleReview(selectedApp.id, "REJECTED", notes)}
-                disabled={actionLoading}
-                className="px-6 py-2.5 rounded-xl font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 transition disabled:opacity-50 flex items-center gap-2"
-              >
-                <XCircle className="size-4" /> Reject
-              </button>
-              <button
-                onClick={() => handleReview(selectedApp.id, "APPROVED", notes)}
-                disabled={actionLoading}
-                className="px-6 py-2.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition shadow-lg shadow-emerald-900/20 disabled:opacity-50 flex items-center gap-2"
-              >
-                <CheckCircle className="size-4" /> Approve & Invite
-              </button>
-            </div>
+            {activeTab === 'SUBMITTED' ? (
+              <div className="p-6 border-t border-foreground/10 bg-foreground/5 flex gap-3 justify-end items-center">
+                <button
+                  onClick={() => handleDelete(selectedApp.id)}
+                  disabled={actionLoading}
+                  className="mr-auto px-4 py-2.5 rounded-xl font-bold text-red-500 hover:bg-red-500/10 transition disabled:opacity-50 flex items-center gap-2"
+                >
+                  Delete Application
+                </button>
+                <button
+                  onClick={() => handleReview(selectedApp.id, "REJECTED", notes)}
+                  disabled={actionLoading}
+                  className="px-6 py-2.5 rounded-xl font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 transition disabled:opacity-50 flex items-center gap-2"
+                >
+                  <XCircle className="size-4" /> Reject
+                </button>
+                <button
+                  onClick={() => handleReview(selectedApp.id, "APPROVED", notes)}
+                  disabled={actionLoading}
+                  className="px-6 py-2.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition shadow-lg shadow-emerald-900/20 disabled:opacity-50 flex items-center gap-2"
+                >
+                  <CheckCircle className="size-4" /> Approve & Invite
+                </button>
+              </div>
+            ) : (
+              <div className="p-6 border-t border-foreground/10 bg-foreground/5 flex gap-3 justify-end items-center">
+                {activeTab !== 'APPROVED' && (
+                  <button
+                    onClick={() => handleDelete(selectedApp.id)}
+                    disabled={actionLoading}
+                    className="mr-auto px-4 py-2.5 rounded-xl font-bold text-red-500 hover:bg-red-500/10 transition disabled:opacity-50 flex items-center gap-2"
+                  >
+                    Delete Application
+                  </button>
+                )}
+                <button
+                  onClick={() => setSelectedApp(null)}
+                  className="px-6 py-2.5 rounded-xl font-bold text-foreground bg-foreground/10 hover:bg-foreground/20 transition flex items-center gap-2"
+                >
+                  Close
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

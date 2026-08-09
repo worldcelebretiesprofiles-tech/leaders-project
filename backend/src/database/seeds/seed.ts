@@ -219,8 +219,8 @@ async function seed() {
   if (profileCount === 0) {
     console.log("Seeding default profile (Dr. Ravuri Balaraju)...");
     const seedQuery = `
-      INSERT INTO profiles (slug, name, title, subtitle, portrait, category_id, subcategory_id, data)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO profiles (slug, name, title, subtitle, portrait, category_id, subcategory_id, data, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PUBLISHED')
     `;
     const values = [
       "dr-ravuri-balaraju",

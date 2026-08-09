@@ -1,25 +1,34 @@
 export const getBaseUrl = () => {
   let url = (import.meta.env.VITE_API_URL as string) || "";
   url = url.replace(/\/+$/, "");
-  if (url.endsWith("/api/v1")) {
-    url = url.substring(0, url.length - 7);
+  return url;
+};
+
+export const resolveImageUrl = (imgObj: any): string | undefined => {
+  if (!imgObj) return undefined;
+  let url = typeof imgObj === "string" ? imgObj : imgObj.secure_url;
+  if (!url) return undefined;
+  if (url.startsWith("/uploads/")) {
+    let base = getBaseUrl();
+    if (base.endsWith("/api/v1")) {
+      base = base.substring(0, base.length - 7);
+    }
+    return `${base}${url}`;
   }
   return url;
 };
 
-export const resolveImageUrl = (imgObj: any) => {
-  if (!imgObj) return "";
-  let url = typeof imgObj === "string" ? imgObj : imgObj.secure_url || "";
-  if (url.startsWith("/uploads/")) {
-    return `${getBaseUrl()}${url}`;
-  }
-  return url;
+let activeClientToken: string | null = null;
+
+export const setClientToken = (token: string | null) => {
+  activeClientToken = token;
 };
 
 export const getHeaders = (extraHeaders: Record<string, string> = {}) => {
   const headers: Record<string, string> = { ...extraHeaders };
   if (typeof window !== "undefined") {
-    const token = sessionStorage.getItem("admin_token");
+    const isAdminPath = window.location.pathname.startsWith("/admin");
+    const token = isAdminPath ? sessionStorage.getItem("admin_token") : (activeClientToken || sessionStorage.getItem("client_token"));
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -30,7 +39,7 @@ export const getHeaders = (extraHeaders: Record<string, string> = {}) => {
 
 
 export async function getProfiles(filters?: { category_id?: number; subcategory_id?: number }) {
-  let url = `${getBaseUrl()}/api/v1/profiles`;
+  let url = `${getBaseUrl()}/profiles`;
   const params = new URLSearchParams();
   if (filters?.category_id) {
     params.append("category_id", filters.category_id.toString());
@@ -55,8 +64,8 @@ export async function getProfiles(filters?: { category_id?: number; subcategory_
 
 export async function getProfileBySlug(slug: string, preview?: boolean) {
   const url = preview 
-    ? `${getBaseUrl()}/api/v1/profiles/${slug}?preview=true`
-    : `${getBaseUrl()}/api/v1/profiles/${slug}`;
+    ? `${getBaseUrl()}/profiles/${slug}?preview=true`
+    : `${getBaseUrl()}/profiles/${slug}`;
   const res = await fetch(url, {
     headers: getHeaders(),
   });
@@ -69,7 +78,7 @@ export async function getProfileBySlug(slug: string, preview?: boolean) {
 
 
 export async function saveProfile(profile: any) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/profiles`, {
+  const res = await fetch(`${getBaseUrl()}/profiles`, {
     method: "POST",
     headers: getHeaders({
       "Content-Type": "application/json",
@@ -84,7 +93,7 @@ export async function saveProfile(profile: any) {
 }
 
 export async function deleteProfile(id: number) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/profiles/${id}`, {
+  const res = await fetch(`${getBaseUrl()}/profiles/${id}`, {
     method: "DELETE",
     headers: getHeaders(),
   });
@@ -96,7 +105,7 @@ export async function uploadImage(file: File) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${getBaseUrl()}/api/v1/upload`, {
+  const res = await fetch(`${getBaseUrl()}/upload`, {
     method: "POST",
     headers: getHeaders(),
     body: formData,
@@ -109,7 +118,7 @@ export async function uploadImage(file: File) {
 }
 
 export async function getCategories() {
-  const res = await fetch(`${getBaseUrl()}/api/v1/categories`, {
+  const res = await fetch(`${getBaseUrl()}/categories`, {
     headers: getHeaders(),
   });
   if (!res.ok) {
@@ -120,7 +129,7 @@ export async function getCategories() {
 }
 
 export async function saveCategory(category: any) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/categories`, {
+  const res = await fetch(`${getBaseUrl()}/categories`, {
     method: "POST",
     headers: getHeaders({
       "Content-Type": "application/json",
@@ -132,7 +141,7 @@ export async function saveCategory(category: any) {
 }
 
 export async function deleteCategory(id: number) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/categories/${id}`, {
+  const res = await fetch(`${getBaseUrl()}/categories/${id}`, {
     method: "DELETE",
     headers: getHeaders(),
   });
@@ -141,7 +150,7 @@ export async function deleteCategory(id: number) {
 }
 
 export async function saveSubcategory(subcategory: any) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/subcategories`, {
+  const res = await fetch(`${getBaseUrl()}/subcategories`, {
     method: "POST",
     headers: getHeaders({
       "Content-Type": "application/json",
@@ -153,7 +162,7 @@ export async function saveSubcategory(subcategory: any) {
 }
 
 export async function deleteSubcategory(id: number) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/subcategories/${id}`, {
+  const res = await fetch(`${getBaseUrl()}/subcategories/${id}`, {
     method: "DELETE",
     headers: getHeaders(),
   });
@@ -162,7 +171,7 @@ export async function deleteSubcategory(id: number) {
 }
 
 export async function getProfessionalExpertise(profileId: number) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/profiles/${profileId}/professional-expertise`, {
+  const res = await fetch(`${getBaseUrl()}/profiles/${profileId}/professional-expertise`, {
     headers: getHeaders(),
   });
   if (!res.ok) throw new Error("Failed to fetch professional expertise");
@@ -170,7 +179,7 @@ export async function getProfessionalExpertise(profileId: number) {
 }
 
 export async function saveProfessionalExpertise(profileId: number, expertiseData: any) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/profiles/${profileId}/professional-expertise`, {
+  const res = await fetch(`${getBaseUrl()}/profiles/${profileId}/professional-expertise`, {
     method: "POST",
     headers: getHeaders({
       "Content-Type": "application/json",
@@ -185,7 +194,7 @@ export async function saveProfessionalExpertise(profileId: number, expertiseData
 }
 
 export async function getFamilyDetails(profileId: number) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/profiles/${profileId}/family`, {
+  const res = await fetch(`${getBaseUrl()}/profiles/${profileId}/family`, {
     headers: getHeaders(),
   });
   if (!res.ok) throw new Error("Failed to fetch family details");
@@ -193,7 +202,7 @@ export async function getFamilyDetails(profileId: number) {
 }
 
 export async function saveFamilyDetails(profileId: number, familyData: any) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/profiles/${profileId}/family`, {
+  const res = await fetch(`${getBaseUrl()}/profiles/${profileId}/family`, {
     method: "POST",
     headers: getHeaders({
       "Content-Type": "application/json",
@@ -208,7 +217,7 @@ export async function saveFamilyDetails(profileId: number, familyData: any) {
 }
 
 export async function getMyNotifications() {
-  const res = await fetch(`${getBaseUrl()}/api/v1/notifications/me`, {
+  const res = await fetch(`${getBaseUrl()}/notifications/me`, {
     headers: getHeaders(),
   });
   if (!res.ok) throw new Error("Failed to fetch notifications");
@@ -216,7 +225,7 @@ export async function getMyNotifications() {
 }
 
 export async function markNotificationAsRead(id: number) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/notifications/me/${id}/read`, {
+  const res = await fetch(`${getBaseUrl()}/notifications/me/${id}/read`, {
     method: "POST",
     headers: getHeaders(),
   });
@@ -225,7 +234,7 @@ export async function markNotificationAsRead(id: number) {
 }
 
 export async function markAllNotificationsAsRead() {
-  const res = await fetch(`${getBaseUrl()}/api/v1/notifications/me/read-all`, {
+  const res = await fetch(`${getBaseUrl()}/notifications/me/read-all`, {
     method: "POST",
     headers: getHeaders(),
   });
@@ -234,7 +243,7 @@ export async function markAllNotificationsAsRead() {
 }
 
 export async function getMeCompletion() {
-  const res = await fetch(`${getBaseUrl()}/api/v1/profiles/me/completion`, {
+  const res = await fetch(`${getBaseUrl()}/profiles/me/completion`, {
     headers: getHeaders(),
   });
   if (!res.ok) throw new Error("Failed to fetch profile completion");
@@ -243,7 +252,7 @@ export async function getMeCompletion() {
 
 
 export async function submitApplication(data: any) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/applications`, {
+  const res = await fetch(`${getBaseUrl()}/applications`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -253,7 +262,7 @@ export async function submitApplication(data: any) {
 }
 
 export async function getDashboardAnalytics() {
-  const res = await fetch(`${getBaseUrl()}/api/v1/analytics`, {
+  const res = await fetch(`${getBaseUrl()}/analytics`, {
     headers: getHeaders(),
   });
   if (!res.ok) throw new Error("Failed to fetch dashboard analytics");
@@ -262,7 +271,7 @@ export async function getDashboardAnalytics() {
 }
 
 export async function rollbackVersion(profileId: number, versionId: number) {
-  const res = await fetch(`${getBaseUrl()}/api/v1/profiles/${profileId}/versions/${versionId}/rollback`, {
+  const res = await fetch(`${getBaseUrl()}/profiles/${profileId}/versions/${versionId}/rollback`, {
     method: "POST",
     headers: getHeaders({ "Content-Type": "application/json" }),
   });

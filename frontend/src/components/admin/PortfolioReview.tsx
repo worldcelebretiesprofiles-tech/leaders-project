@@ -37,19 +37,19 @@ export function PortfolioReview({ currentUser }: { currentUser: any }) {
     queryKey: ["profileVersions", selectedProfileId],
     queryFn: async () => {
       if (!selectedProfileId) return [];
-      const res = await fetch(`${getBaseUrl()}/api/v1/profiles/${selectedProfileId}/versions`, {
+      const res = await fetch(`${getBaseUrl()}/profiles/${selectedProfileId}/versions`, {
         headers: getHeaders(),
       });
       if (!res.ok) throw new Error("Failed to fetch versions");
       const data = await res.json();
-      return data.data;
+      return data.data || [];
     },
     enabled: !!selectedProfileId,
   });
 
   const publishMutation = useMutation({
     mutationFn: async ({ id, notes }: { id: number; notes: string }) => {
-      const res = await fetch(`${getBaseUrl()}/api/v1/profiles/${id}/publish`, {
+      const res = await fetch(`${getBaseUrl()}/profiles/${id}/publish`, {
         method: "POST",
         headers: getHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ reviewNotes: notes }),
@@ -73,7 +73,7 @@ export function PortfolioReview({ currentUser }: { currentUser: any }) {
 
   const requestChangesMutation = useMutation({
     mutationFn: async ({ id, notes }: { id: number; notes: string }) => {
-      const res = await fetch(`${getBaseUrl()}/api/v1/profiles/${id}/request-changes`, {
+      const res = await fetch(`${getBaseUrl()}/profiles/${id}/request-changes`, {
         method: "POST",
         headers: getHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ reviewNotes: notes }),
@@ -97,7 +97,7 @@ export function PortfolioReview({ currentUser }: { currentUser: any }) {
 
   const archiveMutation = useMutation({
     mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
-      const res = await fetch(`${getBaseUrl()}/api/v1/profiles/${id}/archive`, {
+      const res = await fetch(`${getBaseUrl()}/profiles/${id}/archive`, {
         method: "POST",
         headers: getHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ reason }),
@@ -185,7 +185,7 @@ export function PortfolioReview({ currentUser }: { currentUser: any }) {
           <div className="p-6 space-y-8">
             <div>
               <div className="size-16 rounded-xl overflow-hidden bg-white/5 mb-4 border border-white/10">
-                {selectedProfile.portrait ? (
+                {selectedProfile.portrait && selectedProfile.portrait.trim() !== "" ? (
                   <img src={selectedProfile.portrait} alt={selectedProfile.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full grid place-items-center text-white/20">No Img</div>
@@ -324,7 +324,7 @@ export function PortfolioReview({ currentUser }: { currentUser: any }) {
             <div className="space-y-3">
               <button
                 onClick={handlePublish}
-                disabled={publishMutation.isPending || selectedProfile.status !== "SUBMITTED"}
+                disabled={publishMutation.isPending}
                 className="w-full btn-premium rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <CheckCircle2 className="size-4" /> Approve & Publish
@@ -332,7 +332,7 @@ export function PortfolioReview({ currentUser }: { currentUser: any }) {
               
               <button
                 onClick={handleRequestChanges}
-                disabled={requestChangesMutation.isPending || selectedProfile.status !== "SUBMITTED"}
+                disabled={requestChangesMutation.isPending}
                 className="w-full glass rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 text-rose-400 border-rose-500/20 hover:bg-rose-500/10 transition disabled:opacity-50"
               >
                 <AlertCircle className="size-4" /> Request Changes
@@ -415,7 +415,7 @@ export function PortfolioReview({ currentUser }: { currentUser: any }) {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="size-10 rounded-lg bg-white/5 border border-white/10 overflow-hidden shrink-0">
-                          {p.portrait ? (
+                          {p.portrait && p.portrait.trim() !== "" ? (
                             <img src={p.portrait} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full grid place-items-center text-white/20"><User className="size-4" /></div>

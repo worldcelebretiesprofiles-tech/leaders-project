@@ -20,5 +20,6 @@ router.post("/", ApplicationController.submitApplication);
 router.get("/", authMiddleware, adminOnly, ApplicationController.listApplications);
 router.get("/:id", authMiddleware, adminOnly, ApplicationController.getApplication);
 router.put("/:id/status", authMiddleware, adminOnly, ApplicationController.reviewApplication);
+router.delete("/:id", authMiddleware, adminOnly, ApplicationController.deleteApplication);
 
 export default router;
