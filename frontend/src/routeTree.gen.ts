@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SetPasswordRouteImport } from './routes/set-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ApplyRouteImport } from './routes/apply'
@@ -22,6 +23,11 @@ import { Route as CategoryCategorySlugRouteImport } from './routes/category.$cat
 import { Route as LeaderSlugProfessionalExpertiseRouteImport } from './routes/leader.$slug_.professional-expertise'
 import { Route as CategoryCategorySlugSubcategorySlugRouteImport } from './routes/category.$categorySlug.$subcategorySlug'
 
+const SetPasswordRoute = SetPasswordRouteImport.update({
+  id: '/set-password',
+  path: '/set-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/apply': typeof ApplyRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
+  '/set-password': typeof SetPasswordRoute
   '/category/$categorySlug': typeof CategoryCategorySlugRouteWithChildren
   '/dashboard/account': typeof DashboardAccountRoute
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/apply': typeof ApplyRoute
   '/login': typeof LoginRoute
+  '/set-password': typeof SetPasswordRoute
   '/category/$categorySlug': typeof CategoryCategorySlugRouteWithChildren
   '/dashboard/account': typeof DashboardAccountRoute
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/apply': typeof ApplyRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
+  '/set-password': typeof SetPasswordRoute
   '/category/$categorySlug': typeof CategoryCategorySlugRouteWithChildren
   '/dashboard/account': typeof DashboardAccountRoute
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/apply'
     | '/dashboard'
     | '/login'
+    | '/set-password'
     | '/category/$categorySlug'
     | '/dashboard/account'
     | '/dashboard/portfolio'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/apply'
     | '/login'
+    | '/set-password'
     | '/category/$categorySlug'
     | '/dashboard/account'
     | '/dashboard/portfolio'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/apply'
     | '/dashboard'
     | '/login'
+    | '/set-password'
     | '/category/$categorySlug'
     | '/dashboard/account'
     | '/dashboard/portfolio'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   ApplyRoute: typeof ApplyRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   LoginRoute: typeof LoginRoute
+  SetPasswordRoute: typeof SetPasswordRoute
   CategoryCategorySlugRoute: typeof CategoryCategorySlugRouteWithChildren
   LeaderSlugRoute: typeof LeaderSlugRoute
   LeaderSlugProfessionalExpertiseRoute: typeof LeaderSlugProfessionalExpertiseRoute
@@ -184,6 +197,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/set-password': {
+      id: '/set-password'
+      path: '/set-password'
+      fullPath: '/set-password'
+      preLoaderRoute: typeof SetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -305,6 +325,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApplyRoute: ApplyRoute,
   DashboardRoute: DashboardRouteWithChildren,
   LoginRoute: LoginRoute,
+  SetPasswordRoute: SetPasswordRoute,
   CategoryCategorySlugRoute: CategoryCategorySlugRouteWithChildren,
   LeaderSlugRoute: LeaderSlugRoute,
   LeaderSlugProfessionalExpertiseRoute: LeaderSlugProfessionalExpertiseRoute,

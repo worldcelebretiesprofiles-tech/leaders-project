@@ -60,7 +60,9 @@ export class ApplicationService {
     let authUserId: string;
     
     // Try to invite the user
-    const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(app.email);
+    const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(app.email, {
+      redirectTo: `${process.env.FRONTEND_URL}/set-password`
+    });
     
     if (inviteError) {
       if (inviteError.message.includes('rate limit')) {
