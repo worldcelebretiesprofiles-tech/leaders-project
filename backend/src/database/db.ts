@@ -39,11 +39,12 @@ let pool: pg.Pool | null = null;
 
 export function getPool() {
   if (!pool) {
-    // Determine if we need SSL (for cloud postgres, local postgres doesn't need it)
-    const isLocalhost =
-      connectionString.includes("localhost") ||
-      connectionString.includes("127.0.0.1") ||
-      connectionString.includes("::1");
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error("DATABASE_URL environment variable is not set");
+    }
+
+    const isLocalhost = connectionString.includes("localhost") || connectionString.includes("127.0.0.1");
 
     pool = new pg.Pool({
       connectionString,
@@ -55,6 +56,10 @@ export function getPool() {
     });
   }
   return pool;
+}
+
+export async function getClient(): Promise<pg.PoolClient> {
+  return await getPool().connect();
 }
 
 export async function query<T extends pg.QueryResultRow = any>(text: string, params?: any[]): Promise<pg.QueryResult<T>> {
