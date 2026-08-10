@@ -17,6 +17,10 @@ import analyticsRoutes from "./routes/analytics.routes";
 import { notificationRoutes } from "./routes/notification.routes";
 
 const app = express();
+
+// Configure trust proxy for Railway's reverse proxy BEFORE rate limiting
+app.set("trust proxy", 1);
+
 const PORT = process.env.PORT || 5000;
 
 // Initialize Sentry Node SDK if DSN is provided
