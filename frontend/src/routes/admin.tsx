@@ -5,6 +5,7 @@ import { SEO } from "../components/SEO";
 import {
   getProfiles,
   saveProfile,
+  publishProfile,
   deleteProfile,
   uploadImage,
   getCategories,
@@ -2315,9 +2316,14 @@ function AdminDashboard() {
 
     try {
       const response = await saveProfile(finalProfile);
-      toast.success("Leader profile published successfully!", { id: "save" });
       
       const savedId = selectedProfile.id || (response && response.id);
+      
+      if (savedId) {
+        await publishProfile(savedId);
+      }
+
+      toast.success("Leader profile published successfully!", { id: "save" });
       
       if (!selectedProfile.id && response && response.id) {
         setSelectedProfile((prev: any) => ({

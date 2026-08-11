@@ -92,6 +92,18 @@ export async function saveProfile(profile: any) {
   return res.json();
 }
 
+export async function publishProfile(id: number) {
+  const res = await fetch(`${getBaseUrl()}/profiles/${id}/publish`, {
+    method: "POST",
+    headers: getHeaders(),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || "Failed to publish profile via API");
+  }
+  return res.json();
+}
+
 export async function deleteProfile(id: number) {
   const res = await fetch(`${getBaseUrl()}/profiles/${id}`, {
     method: "DELETE",
