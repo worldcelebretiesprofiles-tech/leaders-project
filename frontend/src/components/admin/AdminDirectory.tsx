@@ -52,14 +52,13 @@ export function AdminDirectory({
 
   // Widget calculations
   const totalLeaders = profiles.length;
-  const pendingReviews = profiles.filter(p => p.status === "IN_REVIEW").length;
-  const drafts = profiles.filter(p => p.status === "DRAFT" || !p.status).length;
-  const changesRequested = profiles.filter(p => p.status === "CHANGES_REQUESTED").length;
+  const pendingReviews = profiles.filter(p => !p.is_published && p.status === "IN_REVIEW").length;
+  const drafts = profiles.filter(p => !p.is_published && (p.status === "DRAFT" || !p.status)).length;
+  const changesRequested = profiles.filter(p => !p.is_published && p.status === "CHANGES_REQUESTED").length;
 
   const publishedToday = profiles.filter(p => {
-    if (p.status !== "PUBLISHED") return false;
-    if (!p.published_at) return false;
-    const pubDate = new Date(p.published_at);
+    if (!p.is_published) return false;
+    const pubDate = new Date(p.last_published_at || p.published_at || p.created_at);
     const today = new Date();
     return (
       pubDate.getDate() === today.getDate() &&
@@ -74,7 +73,7 @@ export function AdminDirectory({
     // Status filter
     if (statusFilter !== "ALL") {
       result = result.filter(p => {
-        const status = p.status || "DRAFT";
+        const status = p.is_published ? "PUBLISHED" : (p.status || "DRAFT");
         return status === statusFilter;
       });
     }
@@ -345,7 +344,7 @@ export function AdminDirectory({
               <tbody className="divide-y divide-gray-100">
                 {filteredAndSortedProfiles.map((p: any) => {
                   const isSelected = selectedProfiles.includes(p.id);
-                  const status = p.status || "DRAFT";
+                  const status = p.is_published ? "PUBLISHED" : (p.status || "DRAFT");
 
                   return (
                     <tr
